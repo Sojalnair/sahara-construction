@@ -3086,3 +3086,229 @@ tbody td {
   margin-bottom: 16px;
   opacity: 0.5;
 }
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 480px) {
+  /* Better touch targets */
+  .edit-btn,
+  .delete-btn,
+  .swipe-btn,
+  button {
+    min-height: 44px;
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+
+  /* Improved table scrolling */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  /* Better form layout */
+  .form {
+    padding: 20px 15px;
+    gap: 16px;
+  }
+
+  .form input,
+  .form select {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 14px;
+    border-radius: 8px;
+  }
+
+  /* Improved dropdown visibility */
+  select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+  }
+
+  /* Better calendar mobile view */
+  .calendar-filters {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .employee-filter,
+  .month-picker {
+    width: 100%;
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  /* Improved stats cards */
+  .stats-grid,
+  .expense-stats,
+  .monthly-stats-grid {
+    gap: 12px;
+  }
+
+  .stat-card,
+  .expense-stat-card,
+  .monthly-stat-card {
+    padding: 16px 12px;
+    border-radius: 12px;
+  }
+
+  /* Better site cards */
+  .sites-grid {
+    gap: 16px;
+  }
+
+  .site-card {
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+
+  .card-actions {
+    margin-top: 16px;
+    gap: 10px;
+  }
+
+  /* Improved attendance card */
+  .swipe-attendance-card {
+    padding: 20px 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .site-select {
+    width: 100%;
+    margin-bottom: 16px;
+    font-size: 16px;
+    padding: 14px;
+    border-radius: 8px;
+  }
+
+  /* Better status indicators */
+  .status-badge,
+  .money-badge,
+  .stats-badge {
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+
+  /* Improved header */
+  .header h2 {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions select,
+  .header-actions button {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}
+
+/* Medium screens improvements */
+@media (min-width: 481px) and (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .expense-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .sites-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form button {
+    grid-column: span 2;
+  }
+}
+
+/* Tablet improvements */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .expense-stats {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .sites-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .sidebar {
+    width: 200px;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+}
+
+/* Better scrollbars for mobile */
+@media (max-width: 768px) {
+  .table-container::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  .table-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 4px;
+  }
+
+  .sidebar-nav::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .sidebar-nav::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  .sidebar-nav::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 3px;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .edit-btn,
+  .delete-btn,
+  button {
+    border: 2px solid currentColor;
+  }
+
+  .status-badge,
+  .money-badge,
+  .stats-badge {
+    border: 1px solid currentColor;
+  }
+}

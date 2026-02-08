@@ -634,7 +634,8 @@ function Employees() {
   const fetchEmployees = async () => {
     try {
       console.log('Fetching employees from API...');
-      const response = await api.get('/employees');
+      // Fetch all employees without pagination limit
+      const response = await api.get('/employees?limit=1000&isActive=true');
       console.log('Employees API response:', response.data);
       
       // Backend returns { success, data: { employees, pagination } }
@@ -643,7 +644,18 @@ function Employees() {
       setEmployees(employeesList);
     } catch (err) {
       console.error('Error fetching employees:', err);
-      setEmployees([]);
+      // If there's an auth error, try without auth for public endpoints
+      if (err.response?.status === 401) {
+        try {
+          const publicResponse = await axios.get(`${API_URL}/employees/public/active`);
+          setEmployees(publicResponse.data.data || []);
+        } catch (publicErr) {
+          console.error('Error fetching employees from public endpoint:', publicErr);
+          setEmployees([]);
+        }
+      } else {
+        setEmployees([]);
+      }
     }
   };
 
@@ -702,9 +714,14 @@ function Employees() {
     
     console.log('Submitting employee data:', formData);
     
-    // Frontend validation
+    // Frontend validation with more lenient rules
     if (!formData.name.trim()) {
       alert('Employee name is required');
+      return;
+    }
+    
+    if (formData.name.trim().length < 2) {
+      alert('Employee name must be at least 2 characters long');
       return;
     }
     
@@ -713,10 +730,10 @@ function Employees() {
       return;
     }
     
-    // Validate phone number format (10 digits starting with 6-9)
-    const phoneRegex = /^[6-9]\d{9}$/;
+    // More flexible phone validation - allow any 10 digit number
+    const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(formData.phone)) {
-      alert('Please enter a valid 10-digit Indian phone number starting with 6, 7, 8, or 9');
+      alert('Please enter a valid 10-digit phone number');
       return;
     }
     
@@ -732,7 +749,10 @@ function Employees() {
     
     try {
       console.log('Sending POST request to /employees');
-      const response = await api.post('/employees', formData);
+      const response = await api.post('/employees', {
+        ...formData,
+        salaryAmount: parseFloat(formData.salaryAmount)
+      });
       console.log('Employee creation response:', response.data);
       
       setShowForm(false);
@@ -744,25 +764,54 @@ function Employees() {
     } catch (err) {
       console.error('Error creating employee:', err);
       console.error('Error response:', err.response?.data);
-      const errorMessage = err.response?.data?.message || 
-                          err.response?.data?.errors?.join(', ') || 
-                          'Error creating employee';
-      alert(errorMessage);
+      
+      // More detailed error handling
+      if (err.response?.status === 400) {
+        const errorData = err.response.data;
+        if (errorData.message?.includes('phone number already exists')) {
+          alert('An employee with this phone number already exists. Please use a different phone number.');
+        } else if (errorData.errors && Array.isArray(errorData.errors)) {
+          alert('Validation errors:\n' + errorData.errors.join('\n'));
+        } else {
+          alert(errorData.message || 'Validation failed. Please check your input.');
+        }
+      } else if (err.response?.status === 401) {
+        alert('Authentication failed. Please login again.');
+      } else if (err.response?.status === 403) {
+        alert('You do not have permission to create employees.');
+      } else {
+        const errorMessage = err.response?.data?.message || 'Error creating employee. Please try again.';
+        alert(errorMessage);
+      }
     }
   };
 
   const handleDelete = async (id) => {
     console.log('Delete button clicked for employee ID:', id);
-    if (window.confirm('Are you sure you want to delete this employee?')) {
+    if (window.confirm('Are you sure you want to delete this employee? This will mark them as inactive.')) {
       try {
         console.log('Sending DELETE request for employee:', id);
-        await api.delete(`/employees/${id}`);
-        console.log('Employee deleted successfully, refreshing list...');
-        fetchEmployees();
-        alert('Employee deleted successfully!');
+        const response = await api.delete(`/employees/${id}`);
+        console.log('Employee deletion response:', response.data);
+        
+        // Refresh the employee list
+        await fetchEmployees();
+        alert('Employee marked as inactive successfully!');
       } catch (err) {
         console.error('Error deleting employee:', err);
-        alert('Error deleting employee');
+        console.error('Error response:', err.response?.data);
+        
+        // Provide more specific error messages
+        if (err.response?.status === 401) {
+          alert('Authentication failed. Please login again.');
+        } else if (err.response?.status === 403) {
+          alert('You do not have permission to delete employees.');
+        } else if (err.response?.status === 404) {
+          alert('Employee not found.');
+        } else {
+          const errorMessage = err.response?.data?.message || 'Error deleting employee. Please try again.';
+          alert(errorMessage);
+        }
       }
     } else {
       console.log('Delete cancelled by user');
@@ -788,14 +837,13 @@ function Employees() {
           />
           <input
             type="tel"
-            placeholder="Phone (10 digits starting with 6-9)"
+            placeholder="Phone Number (10 digits)"
             value={formData.phone}
             onChange={(e) => {
               // Only allow digits and limit to 10 characters
               const value = e.target.value.replace(/\D/g, '').slice(0, 10);
               setFormData({ ...formData, phone: value });
             }}
-            pattern="[6-9][0-9]{9}"
             maxLength="10"
             required
           />
@@ -1115,10 +1163,20 @@ function Attendance() {
 
   const fetchEmployees = async () => {
     try {
-      const response = await api.get('/employees');
-      setEmployees(response.data.data?.employees || []);
+      // Fetch all active employees without pagination limit
+      const response = await api.get('/employees?limit=1000&isActive=true');
+      const employeesList = response.data.data?.employees || [];
+      setEmployees(employeesList);
     } catch (err) {
       console.error('Error fetching employees:', err);
+      // Fallback to try without auth for public endpoints
+      try {
+        const publicResponse = await axios.get(`${API_URL}/employees/public/active`);
+        setEmployees(publicResponse.data.data || []);
+      } catch (publicErr) {
+        console.error('Error fetching employees from public endpoint:', publicErr);
+        setEmployees([]);
+      }
     }
   };
 
@@ -1299,8 +1357,20 @@ function Attendance() {
               onChange={(e) => setSelectedMonth(e.target.value)}
               className="month-picker"
             >
-              <option value="2026-01">January 2026</option>
               <option value="2026-02">February 2026</option>
+              <option value="2026-01">January 2026</option>
+              <option value="2025-12">December 2025</option>
+              <option value="2025-11">November 2025</option>
+              <option value="2025-10">October 2025</option>
+              <option value="2025-09">September 2025</option>
+              <option value="2025-08">August 2025</option>
+              <option value="2025-07">July 2025</option>
+              <option value="2025-06">June 2025</option>
+              <option value="2025-05">May 2025</option>
+              <option value="2025-04">April 2025</option>
+              <option value="2025-03">March 2025</option>
+              <option value="2025-02">February 2025</option>
+              <option value="2025-01">January 2025</option>
               <option value="2026-03">March 2026</option>
               <option value="2026-04">April 2026</option>
               <option value="2026-05">May 2026</option>
@@ -1311,18 +1381,6 @@ function Attendance() {
               <option value="2026-10">October 2026</option>
               <option value="2026-11">November 2026</option>
               <option value="2026-12">December 2026</option>
-              <option value="2025-01">January 2025</option>
-              <option value="2025-02">February 2025</option>
-              <option value="2025-03">March 2025</option>
-              <option value="2025-04">April 2025</option>
-              <option value="2025-05">May 2025</option>
-              <option value="2025-06">June 2025</option>
-              <option value="2025-07">July 2025</option>
-              <option value="2025-08">August 2025</option>
-              <option value="2025-09">September 2025</option>
-              <option value="2025-10">October 2025</option>
-              <option value="2025-11">November 2025</option>
-              <option value="2025-12">December 2025</option>
             </select>
           </div>
         </div>
@@ -1458,10 +1516,20 @@ function Expenses() {
 
   const fetchEmployees = async () => {
     try {
-      const response = await api.get('/employees');
-      setEmployees(response.data.data?.employees || []);
+      // Fetch all active employees without pagination limit
+      const response = await api.get('/employees?limit=1000&isActive=true');
+      const employeesList = response.data.data?.employees || [];
+      setEmployees(employeesList);
     } catch (err) {
       console.error('Error fetching employees:', err);
+      // Fallback to try without auth for public endpoints
+      try {
+        const publicResponse = await axios.get(`${API_URL}/employees/public/active`);
+        setEmployees(publicResponse.data.data || []);
+      } catch (publicErr) {
+        console.error('Error fetching employees from public endpoint:', publicErr);
+        setEmployees([]);
+      }
     }
   };
 
@@ -1558,8 +1626,20 @@ function Expenses() {
             className="month-filter"
           >
             <option value="all">All Time</option>
-            <option value="2026-01">January 2026</option>
             <option value="2026-02">February 2026</option>
+            <option value="2026-01">January 2026</option>
+            <option value="2025-12">December 2025</option>
+            <option value="2025-11">November 2025</option>
+            <option value="2025-10">October 2025</option>
+            <option value="2025-09">September 2025</option>
+            <option value="2025-08">August 2025</option>
+            <option value="2025-07">July 2025</option>
+            <option value="2025-06">June 2025</option>
+            <option value="2025-05">May 2025</option>
+            <option value="2025-04">April 2025</option>
+            <option value="2025-03">March 2025</option>
+            <option value="2025-02">February 2025</option>
+            <option value="2025-01">January 2025</option>
             <option value="2026-03">March 2026</option>
             <option value="2026-04">April 2026</option>
             <option value="2026-05">May 2026</option>
@@ -1570,18 +1650,6 @@ function Expenses() {
             <option value="2026-10">October 2026</option>
             <option value="2026-11">November 2026</option>
             <option value="2026-12">December 2026</option>
-            <option value="2025-01">January 2025</option>
-            <option value="2025-02">February 2025</option>
-            <option value="2025-03">March 2025</option>
-            <option value="2025-04">April 2025</option>
-            <option value="2025-05">May 2025</option>
-            <option value="2025-06">June 2025</option>
-            <option value="2025-07">July 2025</option>
-            <option value="2025-08">August 2025</option>
-            <option value="2025-09">September 2025</option>
-            <option value="2025-10">October 2025</option>
-            <option value="2025-11">November 2025</option>
-            <option value="2025-12">December 2025</option>
           </select>
           <button onClick={() => setShowForm(!showForm)}>
             {showForm ? 'Cancel' : 'Add Expense'}

@@ -13,10 +13,13 @@ const employeeSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Phone number is required'],
       trim: true,
-      match: [
-        /^[6-9]\d{9}$/,
-        'Please provide a valid 10-digit Indian phone number'
-      ]
+      validate: {
+        validator: function(v) {
+          return /^\d{10}$/.test(v);
+        },
+        message: 'Phone number must be exactly 10 digits'
+      },
+      unique: true
     },
     role: {
       type: String,

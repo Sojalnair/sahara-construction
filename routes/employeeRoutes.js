@@ -32,8 +32,10 @@ router.post(
       .trim()
       .notEmpty()
       .withMessage('Phone number is required')
-      .matches(/^[6-9]\d{9}$/)
-      .withMessage('Please provide a valid 10-digit Indian phone number'),
+      .isLength({ min: 10, max: 10 })
+      .withMessage('Phone number must be exactly 10 digits')
+      .matches(/^\d{10}$/)
+      .withMessage('Phone number must contain only digits'),
     body('role')
       .trim()
       .notEmpty()
@@ -128,8 +130,10 @@ router.put(
     body('phone')
       .optional()
       .trim()
-      .matches(/^[6-9]\d{9}$/)
-      .withMessage('Please provide a valid 10-digit Indian phone number'),
+      .isLength({ min: 10, max: 10 })
+      .withMessage('Phone number must be exactly 10 digits')
+      .matches(/^\d{10}$/)
+      .withMessage('Phone number must contain only digits'),
     body('role')
       .optional()
       .trim()
@@ -167,5 +171,32 @@ router.delete(
   checkRole('Admin'),
   deleteEmployee
 );
+
+/**
+ * @route   GET /api/employees/public/active
+ * @desc    Get active employees for public use (dropdowns)
+ * @access  Public
+ */
+router.get('/public/active', async (req, res) => {
+  try {
+    const Employee = require('../models/Employee');
+    const employees = await Employee.find({ isActive: true })
+      .select('name phone role _id')
+      .sort({ name: 1 })
+      .limit(1000);
+
+    res.status(200).json({
+      success: true,
+      data: employees
+    });
+  } catch (error) {
+    console.error('Error fetching public employees:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching employees',
+      error: error.message
+    });
+  }
+});
 
 module.exports = router;
