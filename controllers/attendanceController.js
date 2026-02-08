@@ -34,6 +34,7 @@ exports.markAttendance = async (req, res) => {
 // Get attendance records
 exports.getAttendance = async (req, res) => {
   try {
+    console.log('Fetching attendance records with query:', req.query);
     const { site, employee, startDate, endDate } = req.query;
     const filter = {};
     
@@ -45,13 +46,22 @@ exports.getAttendance = async (req, res) => {
       if (endDate) filter.date.$lte = new Date(endDate);
     }
 
+    console.log('Attendance filter:', filter);
+
     const attendance = await Attendance.find(filter)
-      .populate('employee', 'name phone role')
-      .populate('site', 'name location')
+      .populate('employee', 'name phone role salaryType salaryAmount')
+      .populate('site', 'name location status')
       .sort({ date: -1 });
+
+    console.log(`Found ${attendance.length} attendance records`);
+    if (attendance.length > 0) {
+      console.log('First record employee data:', attendance[0].employee);
+      console.log('First record site data:', attendance[0].site);
+    }
 
     res.status(200).json({ success: true, count: attendance.length, data: attendance });
   } catch (error) {
+    console.error('Error fetching attendance:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

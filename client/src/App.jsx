@@ -20,6 +20,55 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Fix date picker issues globally
+const fixDatePickers = () => {
+  // Add event listeners to all date inputs
+  const dateInputs = document.querySelectorAll('input[type="date"]');
+  dateInputs.forEach(input => {
+    // Ensure proper styling
+    input.style.position = 'relative';
+    input.style.zIndex = '10';
+    
+    // Add click handler to force open picker
+    input.addEventListener('click', (e) => {
+      if (e.target.showPicker) {
+        try {
+          e.target.showPicker();
+        } catch (err) {
+          console.log('showPicker not supported or failed');
+        }
+      }
+    });
+    
+    // Handle focus/blur for z-index
+    input.addEventListener('focus', (e) => {
+      e.target.style.zIndex = '1010';
+    });
+    
+    input.addEventListener('blur', (e) => {
+      setTimeout(() => {
+        e.target.style.zIndex = '10';
+      }, 200);
+    });
+  });
+};
+
+// Run fix on component mount and when DOM changes
+if (typeof window !== 'undefined') {
+  // Run initially
+  setTimeout(fixDatePickers, 100);
+  
+  // Run when DOM changes
+  const observer = new MutationObserver(() => {
+    fixDatePickers();
+  });
+  
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+}
+
 // Login Component
 // Login Component
 function Login({ onLogin }) {
@@ -1210,6 +1259,21 @@ function Sites() {
             type="date"
             value={formData.startDate}
             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+            onClick={(e) => {
+              // Ensure the date picker opens
+              e.target.showPicker && e.target.showPicker();
+            }}
+            onFocus={(e) => {
+              // Set z-index when focused
+              e.target.style.zIndex = '1010';
+            }}
+            onBlur={(e) => {
+              // Reset z-index when blurred
+              setTimeout(() => {
+                e.target.style.zIndex = '10';
+              }, 200);
+            }}
+            style={{ position: 'relative', zIndex: 10 }}
             required
           />
           <select
@@ -1304,10 +1368,24 @@ function Attendance() {
 
   const fetchAttendance = async () => {
     try {
+      console.log('Fetching attendance data...');
       const response = await api.get('/attendance');
-      setAttendance(response.data.data || []);
+      console.log('Attendance API response:', response.data);
+      
+      const attendanceData = response.data.data || [];
+      console.log('Attendance records count:', attendanceData.length);
+      
+      // Log first record to check employee population
+      if (attendanceData.length > 0) {
+        console.log('First attendance record:', attendanceData[0]);
+        console.log('Employee data in first record:', attendanceData[0].employee);
+        console.log('Site data in first record:', attendanceData[0].site);
+      }
+      
+      setAttendance(attendanceData);
     } catch (err) {
       console.error('Error fetching attendance:', err);
+      console.error('Error response:', err.response?.data);
     }
   };
 
@@ -1420,9 +1498,28 @@ function Attendance() {
     <div className="attendance">
       <div className="header">
         <h2>Attendance</h2>
-        <button onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Cancel' : 'Mark Attendance'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => setShowForm(!showForm)}>
+            {showForm ? 'Cancel' : 'Mark Attendance'}
+          </button>
+          <button onClick={fetchAttendance} style={{ background: '#28a745' }}>
+            Refresh Attendance
+          </button>
+          <button 
+            onClick={() => {
+              console.log('Current attendance state:', attendance);
+              console.log('Attendance count:', attendance.length);
+              if (attendance.length > 0) {
+                console.log('First record:', attendance[0]);
+                console.log('Employee in first record:', attendance[0].employee);
+              }
+              alert(`Attendance records: ${attendance.length}`);
+            }}
+            style={{ background: '#17a2b8', fontSize: '12px' }}
+          >
+            Debug Attendance
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -1451,6 +1548,21 @@ function Attendance() {
             type="date"
             value={formData.date}
             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            onClick={(e) => {
+              // Ensure the date picker opens
+              e.target.showPicker && e.target.showPicker();
+            }}
+            onFocus={(e) => {
+              // Set z-index when focused
+              e.target.style.zIndex = '1010';
+            }}
+            onBlur={(e) => {
+              // Reset z-index when blurred
+              setTimeout(() => {
+                e.target.style.zIndex = '10';
+              }, 200);
+            }}
+            style={{ position: 'relative', zIndex: 10 }}
             required
           />
           <select
@@ -1594,7 +1706,17 @@ function Attendance() {
             {attendance.map((att) => (
               <tr key={att._id}>
                 <td>{new Date(att.date).toLocaleDateString()}</td>
-                <td>{att.employee?.name || 'N/A'}</td>
+                <td>
+                  {att.employee ? (
+                    <div>
+                      <strong>{att.employee.name}</strong>
+                      {att.employee.phone && <div style={{fontSize: '12px', color: '#666'}}>{att.employee.phone}</div>}
+                      {att.employee.role && <div style={{fontSize: '11px', color: '#999'}}>{att.employee.role}</div>}
+                    </div>
+                  ) : (
+                    <span style={{color: '#e74c3c'}}>Employee data missing</span>
+                  )}
+                </td>
                 <td>{att.site?.name || 'N/A'}</td>
                 <td>{att.clockIn ? new Date(att.clockIn).toLocaleTimeString() : '-'}</td>
                 <td>{att.clockOut ? new Date(att.clockOut).toLocaleTimeString() : '-'}</td>
@@ -1883,6 +2005,21 @@ function Expenses() {
             type="date"
             value={formData.date}
             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            onClick={(e) => {
+              // Ensure the date picker opens
+              e.target.showPicker && e.target.showPicker();
+            }}
+            onFocus={(e) => {
+              // Set z-index when focused
+              e.target.style.zIndex = '1010';
+            }}
+            onBlur={(e) => {
+              // Reset z-index when blurred
+              setTimeout(() => {
+                e.target.style.zIndex = '10';
+              }, 200);
+            }}
+            style={{ position: 'relative', zIndex: 10 }}
             required
           />
           <input
