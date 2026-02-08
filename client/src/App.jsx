@@ -633,9 +633,13 @@ function Employees() {
 
   const fetchEmployees = async () => {
     try {
+      console.log('Fetching employees from API...');
       const response = await api.get('/employees');
+      console.log('Employees API response:', response.data);
       // Backend returns { success, data: { employees, pagination } }
-      setEmployees(response.data.data?.employees || []);
+      const employeesList = response.data.data?.employees || [];
+      console.log('Setting employees list:', employeesList);
+      setEmployees(employeesList);
     } catch (err) {
       console.error('Error fetching employees:', err);
       setEmployees([]);
@@ -695,6 +699,8 @@ function Employees() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('Submitting employee data:', formData);
+    
     // Frontend validation
     if (!formData.name.trim()) {
       alert('Employee name is required');
@@ -724,13 +730,19 @@ function Employees() {
     }
     
     try {
-      await api.post('/employees', formData);
+      console.log('Sending POST request to /employees');
+      const response = await api.post('/employees', formData);
+      console.log('Employee creation response:', response.data);
+      
       setShowForm(false);
       setFormData({ name: '', phone: '', role: '', salaryType: 'daily', salaryAmount: '' });
-      fetchEmployees();
+      
+      console.log('Fetching updated employee list...');
+      await fetchEmployees();
       alert('Employee created successfully!');
     } catch (err) {
       console.error('Error creating employee:', err);
+      console.error('Error response:', err.response?.data);
       const errorMessage = err.response?.data?.message || 
                           err.response?.data?.errors?.join(', ') || 
                           'Error creating employee';
@@ -739,13 +751,20 @@ function Employees() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure?')) {
+    console.log('Delete button clicked for employee ID:', id);
+    if (window.confirm('Are you sure you want to delete this employee?')) {
       try {
+        console.log('Sending DELETE request for employee:', id);
         await api.delete(`/employees/${id}`);
+        console.log('Employee deleted successfully, refreshing list...');
         fetchEmployees();
+        alert('Employee deleted successfully!');
       } catch (err) {
+        console.error('Error deleting employee:', err);
         alert('Error deleting employee');
       }
+    } else {
+      console.log('Delete cancelled by user');
     }
   };
 

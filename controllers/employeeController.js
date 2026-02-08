@@ -7,6 +7,7 @@ const Employee = require('../models/Employee');
  */
 const createEmployee = async (req, res) => {
   try {
+    console.log('Creating employee with data:', req.body);
     const { name, phone, role, salaryType, salaryAmount, currentSite, joiningDate } = req.body;
 
     // Create new employee
@@ -20,15 +21,20 @@ const createEmployee = async (req, res) => {
       joiningDate: joiningDate || Date.now()
     });
 
+    console.log('Employee created successfully:', employee);
+
     res.status(201).json({
       success: true,
       message: 'Employee created successfully',
       data: { employee }
     });
   } catch (error) {
+    console.error('Error creating employee:', error);
+    
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
+      console.log('Validation errors:', messages);
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -38,6 +44,7 @@ const createEmployee = async (req, res) => {
 
     // Handle duplicate phone number
     if (error.code === 11000) {
+      console.log('Duplicate phone number error');
       return res.status(400).json({
         success: false,
         message: 'Employee with this phone number already exists'
@@ -59,6 +66,7 @@ const createEmployee = async (req, res) => {
  */
 const getEmployees = async (req, res) => {
   try {
+    console.log('Fetching employees with query:', req.query);
     const {
       page = 1,
       limit = 10,
@@ -91,6 +99,8 @@ const getEmployees = async (req, res) => {
       ];
     }
 
+    console.log('Employee filter:', filter);
+
     // Calculate pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -103,6 +113,8 @@ const getEmployees = async (req, res) => {
 
     // Get total count for pagination
     const total = await Employee.countDocuments(filter);
+
+    console.log(`Found ${employees.length} employees out of ${total} total`);
 
     res.status(200).json({
       success: true,
@@ -117,6 +129,7 @@ const getEmployees = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Error fetching employees:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching employees',
