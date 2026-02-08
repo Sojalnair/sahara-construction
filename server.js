@@ -29,13 +29,35 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /**
- * Health check endpoint
+ * Health check endpoint with database status
  */
 app.get('/health', (req, res) => {
+  const mongoose = require('mongoose');
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  
   res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: config.nodeEnv
+    environment: config.nodeEnv,
+    database: dbStatus,
+    uptime: process.uptime()
+  });
+});
+
+/**
+ * API Health check endpoint
+ */
+app.get('/api/health', (req, res) => {
+  const mongoose = require('mongoose');
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: config.nodeEnv,
+    database: dbStatus,
+    uptime: process.uptime(),
+    message: 'Construction Management API is running'
   });
 });
 
@@ -55,6 +77,9 @@ app.get('/', (req, res) => {
  */
 const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
+
+const webauthnRoutes = require('./routes/webauthnRoutes');
+app.use('/api/auth/webauthn', webauthnRoutes);
 
 const employeeRoutes = require('./routes/employeeRoutes');
 app.use('/api/employees', employeeRoutes);

@@ -1680,6 +1680,31 @@ function App() {
     }
   }, []);
 
+  // Keep-alive functionality to prevent backend from sleeping
+  useEffect(() => {
+    const keepBackendAlive = async () => {
+      try {
+        // Ping the health endpoint to keep backend awake
+        await fetch(`${API_URL.replace('/api', '')}/health`);
+        console.log('Keep-alive ping sent');
+      } catch (err) {
+        console.log('Keep-alive ping failed:', err.message);
+      }
+    };
+
+    // Ping every 10 minutes (600,000 ms)
+    const keepAliveInterval = setInterval(keepBackendAlive, 10 * 60 * 1000);
+
+    // Send initial ping after 1 minute
+    const initialPing = setTimeout(keepBackendAlive, 60 * 1000);
+
+    // Cleanup on unmount
+    return () => {
+      clearInterval(keepAliveInterval);
+      clearTimeout(initialPing);
+    };
+  }, []);
+
   const handleLogin = (userData) => {
     setUser(userData);
   };
