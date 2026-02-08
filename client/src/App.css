@@ -615,51 +615,7 @@ body {
   z-index: 0;
 }
 
-.navbar {
-  background: #2c3e50;
-  color: white;
-  padding: 15px 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.navbar h1 {
-  font-size: 20px;
-}
-
-.nav-links {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.nav-links a {
-  color: white;
-  text-decoration: none;
-  padding: 8px 15px;
-  border-radius: 5px;
-  transition: background 0.3s;
-}
-
-.nav-links a:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-.logout-btn {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.logout-btn:hover {
-  background: #c0392b;
-}
+/* Old navbar styles removed - using enhanced navbar below */
 
 .content {
   flex: 1;
@@ -2543,4 +2499,80 @@ tbody td {
   .user-info {
     display: none;
   }
+}
+
+
+/* Employee View Navbar (Simple Top Bar) */
+.app .navbar {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: white;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+}
+
+.app .navbar h1 {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #fff 0%, #667eea 50%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app .nav-links {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.app .nav-links a {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app .nav-links a:hover {
+  background: rgba(102, 126, 234, 0.2);
+  transform: translateY(-2px);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  border-color: rgba(102, 126, 234, 0.5);
+}
+
+.app .logout-btn {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+}
+
+.app .logout-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 25px rgba(231, 76, 60, 0.5);
 }

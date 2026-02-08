@@ -1649,9 +1649,9 @@ function App() {
       <Router>
         <div className="app">
           <nav className="navbar">
-            <h1>Sahara Construction</h1>
+            <h1>🏗️ Sahara Construction</h1>
             <div className="nav-links">
-              <Link to="/">My Dashboard</Link>
+              <NavLink to="/">My Dashboard</NavLink>
               <button onClick={handleLogout} className="logout-btn">Logout</button>
             </div>
           </nav>
