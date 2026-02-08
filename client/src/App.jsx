@@ -4,7 +4,7 @@ import axios from 'axios';
 import './App.css';
 
 // API Base URL - Update this with your actual Render backend URL
-const API_URL = import.meta.env.VITE_API_URL || 'https://sahara-construction.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://sahara-construction.onrender.com/api';
 
 // Axios instance
 const api = axios.create({
@@ -296,7 +296,7 @@ function EmployeeDashboard({ user }) {
   const fetchMyAttendance = async () => {
     try {
       // Use public endpoint for employee attendance
-      const response = await axios.get(`${API_URL}/api/attendance/employee/${user._id}`);
+      const response = await axios.get(`${API_URL}/attendance/employee/${user._id}`);
       const myRecords = response.data.data || [];
       setMyAttendance(myRecords);
       
@@ -323,8 +323,8 @@ function EmployeeDashboard({ user }) {
   const fetchSites = async () => {
     try {
       // Use public endpoint for active sites
-      console.log('Fetching sites from:', `${API_URL}/api/sites/public/active`);
-      const response = await axios.get(`${API_URL}/api/sites/public/active`);
+      console.log('Fetching sites from:', `${API_URL}/sites/public/active`);
+      const response = await axios.get(`${API_URL}/sites/public/active`);
       console.log('Sites response:', response.data);
       setSites(response.data.data || []);
       console.log('Sites set to:', response.data.data);
@@ -359,7 +359,7 @@ function EmployeeDashboard({ user }) {
           const { latitude, longitude } = position.coords;
 
           // Use public endpoint for marking attendance with location
-          await axios.post(`${API_URL}/api/attendance/employee/mark`, {
+          await axios.post(`${API_URL}/attendance/employee/mark`, {
             employee: user._id,
             site: selectedSite,
             date: new Date().toISOString().split('T')[0],
@@ -429,7 +429,7 @@ function EmployeeDashboard({ user }) {
           setSwipeStatus('Clocking out...');
           const { latitude, longitude } = position.coords;
 
-          await axios.put(`${API_URL}/api/attendance/employee/clock-out/${todayAttendance._id}`, {
+          await axios.put(`${API_URL}/attendance/employee/clock-out/${todayAttendance._id}`, {
             latitude,
             longitude,
             clockOut: new Date().toISOString()
