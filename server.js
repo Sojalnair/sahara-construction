@@ -73,6 +73,35 @@ app.get('/', (req, res) => {
 });
 
 /**
+ * Temporary direct employee endpoint (no auth required)
+ */
+app.get('/api/employees-direct', async (req, res) => {
+  try {
+    const Employee = require('./models/Employee');
+    const employees = await Employee.find({})
+      .select('name phone role salaryType salaryAmount isActive totalAdvance createdAt _id')
+      .populate('currentSite', 'name location status')
+      .sort({ createdAt: -1 })
+      .limit(1000);
+
+    console.log(`Direct endpoint: Found ${employees.length} employees`);
+
+    res.status(200).json({
+      success: true,
+      data: { employees },
+      message: `Found ${employees.length} employees`
+    });
+  } catch (error) {
+    console.error('Direct employee endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching employees directly',
+      error: error.message
+    });
+  }
+});
+
+/**
  * API Routes
  */
 const authRoutes = require('./routes/authRoutes');

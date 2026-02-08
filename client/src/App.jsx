@@ -639,11 +639,72 @@ function Employees() {
       setError('');
       console.log('Fetching employees from API...');
       
-      // Fetch ALL employees without filtering by isActive - show both active and inactive
+      // First, try to get a valid token from localStorage
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      console.log('Current user:', user);
+      console.log('Has token:', !!token);
+      
+      if (!token || !user.role) {
+        console.log('No valid authentication found, trying public endpoints...');
+        
+        // Try public endpoints first
+        try {
+          console.log('Trying public/all endpoint...');
+          const publicAllResponse = await axios.get(`${API_URL}/employees/public/all`);
+          const publicAllEmployees = publicAllResponse.data.data?.employees || [];
+          console.log('Public all employees response:', publicAllEmployees);
+          setEmployees(publicAllEmployees);
+          
+          if (publicAllEmployees.length === 0) {
+            setError('No employees found in database. Create your first employee using the "Add Employee" button.');
+          }
+          return;
+        } catch (publicAllErr) {
+          console.log('Public/all endpoint failed:', publicAllErr.response?.data);
+          
+          // Fallback to public/active
+          try {
+            console.log('Trying public/active endpoint...');
+            const publicActiveResponse = await axios.get(`${API_URL}/employees/public/active`);
+            const publicActiveEmployees = publicActiveResponse.data.data || [];
+            console.log('Public active employees response:', publicActiveEmployees);
+            setEmployees(publicActiveEmployees);
+            
+            if (publicActiveEmployees.length === 0) {
+              setError('No active employees found. Create your first employee using the "Add Employee" button.');
+            }
+            return;
+          } catch (publicActiveErr) {
+            console.error('All public endpoints failed, trying direct endpoint...');
+            
+            // Final fallback: direct endpoint
+            try {
+              console.log('Trying direct employees endpoint...');
+              const directResponse = await axios.get(`${API_URL}/employees-direct`);
+              const directEmployees = directResponse.data.data?.employees || [];
+              console.log('Direct employees response:', directEmployees);
+              setEmployees(directEmployees);
+              setError('');
+              
+              if (directEmployees.length === 0) {
+                setError('No employees found in database. Create your first employee using the "Add Employee" button.');
+              }
+            } catch (directErr) {
+              console.error('Direct endpoint also failed:', directErr.response?.data);
+              setError('Unable to load employees. The backend may be updating. Please try again in a few minutes.');
+              setEmployees([]);
+            }
+          }
+        }
+      }
+      
+      // If we have authentication, try the authenticated endpoint
+      console.log('Trying authenticated endpoint...');
       const response = await api.get('/employees?limit=1000');
       console.log('Employees API response:', response.data);
       
-      // Backend returns { success, data: { employees, pagination } }
       const employeesList = response.data.data?.employees || [];
       console.log('Setting employees list:', employeesList);
       console.log('Number of employees found:', employeesList.length);
@@ -653,41 +714,60 @@ function Employees() {
       if (employeesList.length === 0) {
         setError('No employees found in database. Create your first employee using the "Add Employee" button.');
       }
+      
     } catch (err) {
       console.error('Error fetching employees:', err);
-      setError('Failed to load employees. Trying alternative method...');
+      console.error('Error response:', err.response?.data);
       
-      // If there's an auth error, try without auth for public endpoints
-      if (err.response?.status === 401) {
+      // If authenticated call fails, try public endpoints as fallback
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        console.log('Authentication failed, trying public endpoints...');
+        
         try {
-          console.log('Trying public endpoint for all employees...');
-          const publicResponse = await axios.get(`${API_URL}/employees/public/all`);
-          const publicEmployees = publicResponse.data.data?.employees || [];
-          console.log('Public employees response:', publicEmployees);
-          setEmployees(publicEmployees);
+          console.log('Trying public/all endpoint as fallback...');
+          const publicAllResponse = await axios.get(`${API_URL}/employees/public/all`);
+          const publicAllEmployees = publicAllResponse.data.data?.employees || [];
+          console.log('Public all employees fallback response:', publicAllEmployees);
+          setEmployees(publicAllEmployees);
           setError('');
           
-          if (publicEmployees.length === 0) {
+          if (publicAllEmployees.length === 0) {
             setError('No employees found in database. Create your first employee using the "Add Employee" button.');
           }
-        } catch (publicErr) {
-          console.error('Error fetching employees from public/all endpoint:', publicErr);
-          // Fallback to active employees if all employees endpoint doesn't exist
+        } catch (publicAllErr) {
+          console.error('Public/all fallback failed:', publicAllErr.response?.data);
+          
           try {
-            console.log('Trying public/active endpoint as fallback...');
-            const activeResponse = await axios.get(`${API_URL}/employees/public/active`);
-            const activeEmployees = activeResponse.data.data || [];
-            console.log('Active employees response:', activeEmployees);
-            setEmployees(activeEmployees);
+            console.log('Trying public/active endpoint as final fallback...');
+            const publicActiveResponse = await axios.get(`${API_URL}/employees/public/active`);
+            const publicActiveEmployees = publicActiveResponse.data.data || [];
+            console.log('Public active employees final fallback:', publicActiveEmployees);
+            setEmployees(publicActiveEmployees);
             setError('');
             
-            if (activeEmployees.length === 0) {
+            if (publicActiveEmployees.length === 0) {
               setError('No active employees found. Create your first employee using the "Add Employee" button.');
             }
-          } catch (activeErr) {
-            console.error('Error fetching active employees:', activeErr);
-            setError('Unable to load employees. Please check your connection and try again.');
-            setEmployees([]);
+          } catch (publicActiveErr) {
+            console.error('All endpoints failed, trying direct endpoint...');
+            
+            // Final fallback: direct endpoint
+            try {
+              console.log('Trying direct employees endpoint as final fallback...');
+              const directResponse = await axios.get(`${API_URL}/employees-direct`);
+              const directEmployees = directResponse.data.data?.employees || [];
+              console.log('Direct employees final fallback:', directEmployees);
+              setEmployees(directEmployees);
+              setError('');
+              
+              if (directEmployees.length === 0) {
+                setError('No employees found in database. Create your first employee using the "Add Employee" button.');
+              }
+            } catch (directErr) {
+              console.error('All endpoints including direct failed:', directErr.response?.data);
+              setError('Unable to load employees. The backend may be updating. Please try again in a few minutes.');
+              setEmployees([]);
+            }
           }
         }
       } else {
