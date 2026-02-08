@@ -1142,6 +1142,251 @@ function SiteExpenseReport() {
   );
 }
 
+// Labour Reports Component - Separate page for labour work days
+function LabourReports() {
+  const [sites, setSites] = useState([]);
+  const [attendance, setAttendance] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [selectedSite, setSelectedSite] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [siteLabourData, setSiteLabourData] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchSites();
+    fetchAttendance();
+    fetchEmployees();
+  }, []);
+
+  useEffect(() => {
+    calculateSiteLabourDays();
+  }, [attendance, employees, selectedSite, selectedMonth]);
+
+  const fetchSites = async () => {
+    try {
+      const timestamp = new Date().getTime();
+      const response = await api.get(`/sites?_t=${timestamp}`);
+      setSites(response.data.data || []);
+    } catch (err) {
+      console.error('Error fetching sites:', err);
+    }
+  };
+
+  const fetchAttendance = async () => {
+    try {
+      setLoading(true);
+      const timestamp = new Date().getTime();
+      const response = await api.get(`/attendance?_t=${timestamp}`);
+      setAttendance(response.data.data || []);
+    } catch (err) {
+      console.error('Error fetching attendance:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchEmployees = async () => {
+    try {
+      const timestamp = new Date().getTime();
+      const response = await api.get(`/employees?limit=1000&_t=${timestamp}`);
+      setEmployees(response.data.data?.employees || []);
+    } catch (err) {
+      console.error('Error fetching employees:', err);
+    }
+  };
+
+  const calculateSiteLabourDays = () => {
+    const [year, month] = selectedMonth.split('-');
+    const monthStart = new Date(year, month - 1, 1);
+    const monthEnd = new Date(year, month, 0);
+
+    // Filter attendance by month
+    const filteredAttendance = attendance.filter(att => {
+      const attDate = new Date(att.date);
+      const isInMonth = attDate >= monthStart && attDate <= monthEnd;
+      const matchesSite = !selectedSite || att.site?._id === selectedSite;
+      
+      return isInMonth && matchesSite && (att.status === 'Present' || att.status === 'Half-Day');
+    });
+
+    // Group by site and employee
+    const siteLabour = {};
+    
+    filteredAttendance.forEach(att => {
+      const siteId = att.site?._id;
+      const siteName = att.site?.name || 'Unknown Site';
+      const employeeId = att.employee?._id;
+      const employeeName = att.employee?.name || 'Unknown Employee';
+      const employeeRole = att.employee?.role || 'Worker';
+      
+      if (!siteLabour[siteId]) {
+        siteLabour[siteId] = {
+          siteName,
+          employees: {},
+          totalWorkDays: 0,
+          totalFullDays: 0,
+          totalHalfDays: 0
+        };
+      }
+      
+      if (!siteLabour[siteId].employees[employeeId]) {
+        siteLabour[siteId].employees[employeeId] = {
+          name: employeeName,
+          role: employeeRole,
+          fullDays: 0,
+          halfDays: 0,
+          totalDays: 0,
+          totalWages: 0
+        };
+      }
+      
+      const employee = siteLabour[siteId].employees[employeeId];
+      
+      if (att.status === 'Present') {
+        employee.fullDays++;
+        siteLabour[siteId].totalFullDays++;
+      } else if (att.status === 'Half-Day') {
+        employee.halfDays++;
+        siteLabour[siteId].totalHalfDays++;
+      }
+      
+      employee.totalDays++;
+      employee.totalWages += att.wageEarned || 0;
+      siteLabour[siteId].totalWorkDays++;
+    });
+
+    setSiteLabourData(siteLabour);
+  };
+
+  const exportToCSV = () => {
+    const csvData = [];
+    
+    // Header for labour days
+    csvData.push(['LABOUR WORK DAYS REPORT - ' + selectedMonth]);
+    csvData.push(['Site Name', 'Employee Name', 'Role', 'Full Days', 'Half Days', 'Total Days', 'Total Wages']);
+    
+    Object.values(siteLabourData).forEach(site => {
+      Object.values(site.employees).forEach(emp => {
+        csvData.push([
+          site.siteName,
+          emp.name,
+          emp.role,
+          emp.fullDays,
+          emp.halfDays,
+          emp.totalDays,
+          emp.totalWages
+        ]);
+      });
+    });
+    
+    const csvContent = csvData.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `labour-report-${selectedMonth}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="labour-reports">
+      <div className="header">
+        <h2>Labour Work Days Reports</h2>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={exportToCSV} style={{ background: '#27ae60' }}>
+            Export CSV
+          </button>
+          <button onClick={() => { fetchAttendance(); }} style={{ background: '#17a2b8' }}>
+            Refresh Data
+          </button>
+        </div>
+      </div>
+
+      <div className="report-filters">
+        <select 
+          value={selectedSite}
+          onChange={(e) => setSelectedSite(e.target.value)}
+          style={{ marginRight: '10px', padding: '8px' }}
+        >
+          <option value="">All Sites</option>
+          {sites.map((site) => (
+            <option key={site._id} value={site._id}>{site.name}</option>
+          ))}
+        </select>
+        
+        <input 
+          type="month" 
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          style={{ padding: '8px' }}
+        />
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <p>Loading labour report data...</p>
+        </div>
+      ) : (
+        <>
+          {/* Labour Days Summary Cards */}
+          <div className="report-section">
+            <h3>👷 Labour Work Days by Site</h3>
+            <div className="labour-summary-cards">
+              {Object.entries(siteLabourData).map(([siteId, data]) => (
+                <div key={siteId} className="site-labour-card">
+                  <h4>{data.siteName}</h4>
+                  <div className="labour-summary">
+                    <div className="labour-stats">
+                      <div className="stat-item">
+                        <span className="stat-number">{data.totalWorkDays}</span>
+                        <span className="stat-label">Total Work Days</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-number">{data.totalFullDays}</span>
+                        <span className="stat-label">Full Days</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-number">{data.totalHalfDays}</span>
+                        <span className="stat-label">Half Days</span>
+                      </div>
+                    </div>
+                    
+                    <div className="employee-list">
+                      <h5>Employee Work Details:</h5>
+                      {Object.values(data.employees).map((emp, index) => (
+                        <div key={index} className="employee-work-item">
+                          <div className="employee-info">
+                            <strong>{emp.name}</strong>
+                            <span className="employee-role">({emp.role})</span>
+                          </div>
+                          <div className="work-details">
+                            <span className="work-days">
+                              {emp.fullDays} full + {emp.halfDays} half = {emp.totalDays} days
+                            </span>
+                            <span className="work-wages">₹{emp.totalWages.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {Object.keys(siteLabourData).length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+              <p>No labour data found for the selected criteria.</p>
+              <p>Try selecting a different month or site.</p>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 // Employees Component
 function Employees() {
   const [employees, setEmployees] = useState([]);
@@ -2774,6 +3019,10 @@ function App() {
                 <span className="sidebar-icon">📊</span>
                 <span className="sidebar-text">Site Reports</span>
               </NavLink>
+              <NavLink to="/labour-reports" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"}>
+                <span className="sidebar-icon">👷</span>
+                <span className="sidebar-text">Labour Reports</span>
+              </NavLink>
             </nav>
           </aside>
 
@@ -2786,6 +3035,7 @@ function App() {
               <Route path="/attendance" element={<Attendance />} />
               <Route path="/expenses" element={<Expenses />} />
               <Route path="/site-reports" element={<SiteExpenseReport />} />
+              <Route path="/labour-reports" element={<LabourReports />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </main>
