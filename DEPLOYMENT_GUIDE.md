@@ -82,7 +82,7 @@ git push -u origin main
 Click "Advanced" → "Add Environment Variable" and add these:
 
 ```
-MONGODB_URI=your_mongodb_atlas_connection_string
+MONGODB_URI=mongodb+srv://sojalnair:Asdfghjkl47!!@cluster0.1valrd3.mongodb.net/?appName=Cluster0
 JWT_SECRET=construction-management-super-secret-key-for-jwt-tokens-minimum-32-chars
 JWT_EXPIRE=7d
 PORT=5000

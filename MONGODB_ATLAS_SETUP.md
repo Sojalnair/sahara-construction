@@ -3,7 +3,7 @@
 ## Quick Setup Steps
 
 ### 1. Create MongoDB Atlas Account
-- Visit: https://www.mongodb.com/cloud/atlas/register
+- Visit: https://www.mongodb.com/clo  ud/atlas/register
 - Sign up with email or Google
 - Verify your email
 
@@ -48,13 +48,13 @@ mongodb+srv://construction_admin:<password>@cluster0.xxxxx.mongodb.net/?retryWri
 Replace the MONGODB_URI in your `.env` file:
 
 ```env
-MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/construction-management?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://sojalnair:Asdfghjkl47!!@YOUR_CLUSTER.mongodb.net/construction-management?retryWrites=true&w=majority
 ```
 
 **Important:**
-- Replace `YOUR_USERNAME` with your database username
-- Replace `YOUR_PASSWORD` with your database password
-- Replace `YOUR_CLUSTER` with your cluster address
+- Replace `sojalnair` with your database username
+- Replace `Asdfghjkl47!!` with your database password
+- Replace `cluster0.1valrd3.mongodb.net` with your cluster address
 - Keep `/construction-management` at the end (this is your database name)
 
 ### 7. Restart Your Backend
