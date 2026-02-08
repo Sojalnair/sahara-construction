@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-ro
 import axios from 'axios';
 import './App.css';
 
-// API Base URL
-const API_URL = 'https://sahara-construction.onrender.com';
+// API Base URL - Update this with your actual Render backend URL
+const API_URL = import.meta.env.VITE_API_URL || 'https://sahara-construction.onrender.com';
 
 // Axios instance
 const api = axios.create({
