@@ -2983,3 +2983,106 @@ tbody td {
     text-size-adjust: 100%;
   }
 }
+
+/* ============================================
+   TABLE CONTAINER IMPROVEMENTS
+   ============================================ */
+
+/* General table container for all screen sizes */
+.table-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 70vh;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8eef5;
+  background: white;
+}
+
+/* Table styling improvements */
+.table-container table {
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table-container th {
+  background: linear-gradient(135deg, #f8f9fc 0%, #e8eef5 100%);
+  color: #2c3e50;
+  font-weight: 600;
+  padding: 16px 12px;
+  text-align: left;
+  border-bottom: 2px solid #e8eef5;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table-container td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.table-container tbody tr {
+  transition: all 0.2s ease;
+}
+
+.table-container tbody tr:hover {
+  background: rgba(102, 126, 234, 0.05);
+  transform: scale(1.01);
+}
+
+/* Scrollbar styling for table container */
+.table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a6fd8, #6a4190);
+}
+
+/* Employee table specific improvements */
+.employees .table-container {
+  margin-top: 20px;
+}
+
+.employees .table-container th:first-child,
+.employees .table-container td:first-child {
+  padding-left: 20px;
+}
+
+.employees .table-container th:last-child,
+.employees .table-container td:last-child {
+  padding-right: 20px;
+  text-align: center;
+}
+
+/* No employees message */
+.no-employees {
+  text-align: center;
+  padding: 40px 20px;
+  color: #7f8c8d;
+  font-size: 16px;
+}
+
+.no-employees::before {
+  content: '👥';
+  display: block;
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}

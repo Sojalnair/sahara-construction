@@ -634,7 +634,8 @@ function Employees() {
   const fetchEmployees = async () => {
     try {
       console.log('Fetching employees from API...');
-      const response = await api.get('/employees');
+      // Request all employees by setting a high limit
+      const response = await api.get('/employees?limit=1000');
       console.log('Employees API response:', response.data);
       // Backend returns { success, data: { employees, pagination } }
       const employeesList = response.data.data?.employees || [];
@@ -841,47 +842,55 @@ function Employees() {
             </tr>
           </thead>
           <tbody>
-            {employees.map((emp) => {
-              const stats = employeeStats[emp._id] || { totalDays: 0, presentDays: 0, totalHours: 0 };
-              const payment = calculatePayment(emp, stats);
-              return (
-                <tr key={emp._id}>
-                  <td><strong>{emp.name}</strong></td>
-                  <td>{emp.phone}</td>
-                  <td>{emp.role}</td>
-                  <td>
-                    <div>₹{emp.salaryAmount}</div>
-                    <small style={{color: '#999'}}>({emp.salaryType})</small>
-                  </td>
-                  <td>
-                    <span className="stats-badge">{stats.presentDays} days</span>
-                  </td>
-                  <td>
-                    <span className="money-badge earned">₹{payment.totalEarned.toLocaleString()}</span>
-                  </td>
-                  <td>
-                    <span className="money-badge paid">₹{payment.totalPaid.toLocaleString()}</span>
-                  </td>
-                  <td>
-                    {payment.overpaid > 0 ? (
-                      <span className="money-badge overpaid">-₹{payment.overpaid.toLocaleString()}</span>
-                    ) : (
-                      <span className="money-badge pending">₹{payment.pending.toLocaleString()}</span>
-                    )}
-                  </td>
-                  <td>
-                    <span className={`status-badge ${emp.isActive ? 'active' : 'inactive'}`}>
-                      {emp.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td>
-                    <button onClick={() => handleDelete(emp._id)} className="delete-btn">
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+            {employees.length > 0 ? (
+              employees.map((emp) => {
+                const stats = employeeStats[emp._id] || { totalDays: 0, presentDays: 0, totalHours: 0 };
+                const payment = calculatePayment(emp, stats);
+                return (
+                  <tr key={emp._id}>
+                    <td><strong>{emp.name}</strong></td>
+                    <td>{emp.phone}</td>
+                    <td>{emp.role}</td>
+                    <td>
+                      <div>₹{emp.salaryAmount}</div>
+                      <small style={{color: '#999'}}>({emp.salaryType})</small>
+                    </td>
+                    <td>
+                      <span className="stats-badge">{stats.presentDays} days</span>
+                    </td>
+                    <td>
+                      <span className="money-badge earned">₹{payment.totalEarned.toLocaleString()}</span>
+                    </td>
+                    <td>
+                      <span className="money-badge paid">₹{payment.totalPaid.toLocaleString()}</span>
+                    </td>
+                    <td>
+                      {payment.overpaid > 0 ? (
+                        <span className="money-badge overpaid">-₹{payment.overpaid.toLocaleString()}</span>
+                      ) : (
+                        <span className="money-badge pending">₹{payment.pending.toLocaleString()}</span>
+                      )}
+                    </td>
+                    <td>
+                      <span className={`status-badge ${emp.isActive ? 'active' : 'inactive'}`}>
+                        {emp.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td>
+                      <button onClick={() => handleDelete(emp._id)} className="delete-btn">
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan="10" className="no-employees">
+                  No employees found. Click "Add Employee" to create your first employee.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
