@@ -3827,3 +3827,275 @@ input[type="date"]:active::-webkit-calendar-picker-indicator {
     height: 12px;
   }
 }
+/* Site Reports - Labour Work Days Styles */
+.report-section {
+  margin: 30px 0;
+}
+
+.report-section h3 {
+  color: #2c3e50;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #667eea;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.labour-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.site-labour-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.site-labour-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+}
+
+.site-labour-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.site-labour-card h4 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.labour-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+}
+
+.stat-item {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: #27ae60;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.employee-list h5 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 16px;
+  font-weight: 600;
+  border-bottom: 2px solid #ecf0f1;
+  padding-bottom: 8px;
+}
+
+.employee-work-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border-left: 4px solid #27ae60;
+  transition: all 0.2s ease;
+}
+
+.employee-work-item:hover {
+  background: #e9ecef;
+  transform: translateX(4px);
+}
+
+.employee-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.employee-info strong {
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.employee-role {
+  color: #666;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.work-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.work-days {
+  font-size: 13px;
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.work-wages {
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 700;
+}
+
+/* Enhanced expense summary cards for reports */
+.site-expense-card h4,
+.site-labour-card h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-expense-card h4::before {
+  content: '💰';
+  font-size: 20px;
+}
+
+.site-labour-card h4::before {
+  content: '👷';
+  font-size: 20px;
+}
+
+/* Mobile responsiveness for labour cards */
+@media (max-width: 768px) {
+  .labour-summary-cards {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .site-labour-card {
+    padding: 20px;
+  }
+  
+  .labour-stats {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .stat-item {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .stat-number {
+    font-size: 24px;
+  }
+  
+  .employee-work-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .work-details {
+    align-items: flex-start;
+  }
+  
+  .report-section h3 {
+    font-size: 20px;
+  }
+}
+
+/* Animation for labour cards */
+.site-labour-card {
+  animation: slideInUp 0.5s ease-out;
+}
+
+.site-labour-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.site-labour-card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.site-labour-card:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+/* Enhanced employee work item animations */
+.employee-work-item {
+  animation: fadeInLeft 0.3s ease-out;
+}
+
+.employee-work-item:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.employee-work-item:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.employee-work-item:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Summary totals styling */
+.labour-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Enhanced stat items with icons */
+.stat-item:first-child .stat-number {
+  color: #3498db;
+}
+
+.stat-item:nth-child(2) .stat-number {
+  color: #27ae60;
+}
+
+.stat-item:nth-child(3) .stat-number {
+  color: #f39c12;
+}
