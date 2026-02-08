@@ -618,6 +618,8 @@ function Employees() {
   const [employees, setEmployees] = useState([]);
   const [employeeStats, setEmployeeStats] = useState({});
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -633,29 +635,67 @@ function Employees() {
 
   const fetchEmployees = async () => {
     try {
+      setLoading(true);
+      setError('');
       console.log('Fetching employees from API...');
-      // Fetch all employees without pagination limit
-      const response = await api.get('/employees?limit=1000&isActive=true');
+      
+      // Fetch ALL employees without filtering by isActive - show both active and inactive
+      const response = await api.get('/employees?limit=1000');
       console.log('Employees API response:', response.data);
       
       // Backend returns { success, data: { employees, pagination } }
       const employeesList = response.data.data?.employees || [];
       console.log('Setting employees list:', employeesList);
+      console.log('Number of employees found:', employeesList.length);
+      
       setEmployees(employeesList);
+      
+      if (employeesList.length === 0) {
+        setError('No employees found in database. Create your first employee using the "Add Employee" button.');
+      }
     } catch (err) {
       console.error('Error fetching employees:', err);
+      setError('Failed to load employees. Trying alternative method...');
+      
       // If there's an auth error, try without auth for public endpoints
       if (err.response?.status === 401) {
         try {
-          const publicResponse = await axios.get(`${API_URL}/employees/public/active`);
-          setEmployees(publicResponse.data.data || []);
+          console.log('Trying public endpoint for all employees...');
+          const publicResponse = await axios.get(`${API_URL}/employees/public/all`);
+          const publicEmployees = publicResponse.data.data?.employees || [];
+          console.log('Public employees response:', publicEmployees);
+          setEmployees(publicEmployees);
+          setError('');
+          
+          if (publicEmployees.length === 0) {
+            setError('No employees found in database. Create your first employee using the "Add Employee" button.');
+          }
         } catch (publicErr) {
-          console.error('Error fetching employees from public endpoint:', publicErr);
-          setEmployees([]);
+          console.error('Error fetching employees from public/all endpoint:', publicErr);
+          // Fallback to active employees if all employees endpoint doesn't exist
+          try {
+            console.log('Trying public/active endpoint as fallback...');
+            const activeResponse = await axios.get(`${API_URL}/employees/public/active`);
+            const activeEmployees = activeResponse.data.data || [];
+            console.log('Active employees response:', activeEmployees);
+            setEmployees(activeEmployees);
+            setError('');
+            
+            if (activeEmployees.length === 0) {
+              setError('No active employees found. Create your first employee using the "Add Employee" button.');
+            }
+          } catch (activeErr) {
+            console.error('Error fetching active employees:', activeErr);
+            setError('Unable to load employees. Please check your connection and try again.');
+            setEmployees([]);
+          }
         }
       } else {
+        setError('Unable to load employees. Please check your connection and try again.');
         setEmployees([]);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -822,9 +862,26 @@ function Employees() {
     <div className="employees">
       <div className="header">
         <h2>Employees</h2>
-        <button onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Cancel' : 'Add Employee'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => setShowForm(!showForm)}>
+            {showForm ? 'Cancel' : 'Add Employee'}
+          </button>
+          <button onClick={fetchEmployees} style={{ background: '#28a745' }}>
+            Refresh List
+          </button>
+          <button 
+            onClick={() => {
+              console.log('Current employees state:', employees);
+              console.log('Employees length:', employees.length);
+              console.log('Loading state:', loading);
+              console.log('Error state:', error);
+              alert(`Employees: ${employees.length}, Loading: ${loading}, Error: ${error || 'None'}`);
+            }}
+            style={{ background: '#17a2b8', fontSize: '12px' }}
+          >
+            Debug Info
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -874,73 +931,86 @@ function Employees() {
       )}
 
       <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Role</th>
-              <th>Salary</th>
-              <th>Days Worked</th>
-              <th>Total Earned</th>
-              <th>Paid</th>
-              <th>Pending</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {employees.length > 0 ? (
-              employees.map((emp) => {
-                const stats = employeeStats[emp._id] || { totalDays: 0, presentDays: 0, totalHours: 0 };
-                const payment = calculatePayment(emp, stats);
-                return (
-                  <tr key={emp._id}>
-                    <td><strong>{emp.name}</strong></td>
-                    <td>{emp.phone}</td>
-                    <td>{emp.role}</td>
-                    <td>
-                      <div>₹{emp.salaryAmount}</div>
-                      <small style={{color: '#999'}}>({emp.salaryType})</small>
-                    </td>
-                    <td>
-                      <span className="stats-badge">{stats.presentDays} days</span>
-                    </td>
-                    <td>
-                      <span className="money-badge earned">₹{payment.totalEarned.toLocaleString()}</span>
-                    </td>
-                    <td>
-                      <span className="money-badge paid">₹{payment.totalPaid.toLocaleString()}</span>
-                    </td>
-                    <td>
-                      {payment.overpaid > 0 ? (
-                        <span className="money-badge overpaid">-₹{payment.overpaid.toLocaleString()}</span>
-                      ) : (
-                        <span className="money-badge pending">₹{payment.pending.toLocaleString()}</span>
-                      )}
-                    </td>
-                    <td>
-                      <span className={`status-badge ${emp.isActive ? 'active' : 'inactive'}`}>
-                        {emp.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td>
-                      <button onClick={() => handleDelete(emp._id)} className="delete-btn">
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <p>Loading employees...</p>
+          </div>
+        ) : error ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#e74c3c' }}>
+            <p>{error}</p>
+            <button onClick={fetchEmployees} style={{ marginTop: '10px' }}>
+              Retry Loading
+            </button>
+          </div>
+        ) : (
+          <table>
+            <thead>
               <tr>
-                <td colSpan="10" className="no-employees">
-                  No employees found. Click "Add Employee" to create your first employee.
-                </td>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Role</th>
+                <th>Salary</th>
+                <th>Days Worked</th>
+                <th>Total Earned</th>
+                <th>Paid</th>
+                <th>Pending</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {employees.length > 0 ? (
+                employees.map((emp) => {
+                  const stats = employeeStats[emp._id] || { totalDays: 0, presentDays: 0, totalHours: 0 };
+                  const payment = calculatePayment(emp, stats);
+                  return (
+                    <tr key={emp._id}>
+                      <td><strong>{emp.name}</strong></td>
+                      <td>{emp.phone}</td>
+                      <td>{emp.role}</td>
+                      <td>
+                        <div>₹{emp.salaryAmount}</div>
+                        <small style={{color: '#999'}}>({emp.salaryType})</small>
+                      </td>
+                      <td>
+                        <span className="stats-badge">{stats.presentDays} days</span>
+                      </td>
+                      <td>
+                        <span className="money-badge earned">₹{payment.totalEarned.toLocaleString()}</span>
+                      </td>
+                      <td>
+                        <span className="money-badge paid">₹{payment.totalPaid.toLocaleString()}</span>
+                      </td>
+                      <td>
+                        {payment.overpaid > 0 ? (
+                          <span className="money-badge overpaid">-₹{payment.overpaid.toLocaleString()}</span>
+                        ) : (
+                          <span className="money-badge pending">₹{payment.pending.toLocaleString()}</span>
+                        )}
+                      </td>
+                      <td>
+                        <span className={`status-badge ${emp.isActive ? 'active' : 'inactive'}`}>
+                          {emp.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td>
+                        <button onClick={() => handleDelete(emp._id)} className="delete-btn">
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="10" className="no-employees">
+                    No employees found. Click "Add Employee" to create your first employee.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

@@ -81,8 +81,8 @@ router.get(
       .withMessage('Page must be a positive integer'),
     query('limit')
       .optional()
-      .isInt({ min: 1, max: 100 })
-      .withMessage('Limit must be between 1 and 100'),
+      .isInt({ min: 1, max: 10000 })
+      .withMessage('Limit must be between 1 and 10000'),
     query('isActive')
       .optional()
       .isBoolean()
@@ -191,6 +191,34 @@ router.get('/public/active', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching public employees:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching employees',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/employees/public/all
+ * @desc    Get all employees for public use (employee list display)
+ * @access  Public
+ */
+router.get('/public/all', async (req, res) => {
+  try {
+    const Employee = require('../models/Employee');
+    const employees = await Employee.find({})
+      .select('name phone role salaryType salaryAmount isActive totalAdvance createdAt _id')
+      .populate('currentSite', 'name location status')
+      .sort({ createdAt: -1 })
+      .limit(1000);
+
+    res.status(200).json({
+      success: true,
+      data: { employees }
+    });
+  } catch (error) {
+    console.error('Error fetching all public employees:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching employees',
