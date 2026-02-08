@@ -1271,6 +1271,18 @@ function Attendance() {
               onChange={(e) => setSelectedMonth(e.target.value)}
               className="month-picker"
             >
+              <option value="2026-01">January 2026</option>
+              <option value="2026-02">February 2026</option>
+              <option value="2026-03">March 2026</option>
+              <option value="2026-04">April 2026</option>
+              <option value="2026-05">May 2026</option>
+              <option value="2026-06">June 2026</option>
+              <option value="2026-07">July 2026</option>
+              <option value="2026-08">August 2026</option>
+              <option value="2026-09">September 2026</option>
+              <option value="2026-10">October 2026</option>
+              <option value="2026-11">November 2026</option>
+              <option value="2026-12">December 2026</option>
               <option value="2025-01">January 2025</option>
               <option value="2025-02">February 2025</option>
               <option value="2025-03">March 2025</option>
@@ -1518,6 +1530,18 @@ function Expenses() {
             className="month-filter"
           >
             <option value="all">All Time</option>
+            <option value="2026-01">January 2026</option>
+            <option value="2026-02">February 2026</option>
+            <option value="2026-03">March 2026</option>
+            <option value="2026-04">April 2026</option>
+            <option value="2026-05">May 2026</option>
+            <option value="2026-06">June 2026</option>
+            <option value="2026-07">July 2026</option>
+            <option value="2026-08">August 2026</option>
+            <option value="2026-09">September 2026</option>
+            <option value="2026-10">October 2026</option>
+            <option value="2026-11">November 2026</option>
+            <option value="2026-12">December 2026</option>
             <option value="2025-01">January 2025</option>
             <option value="2025-02">February 2025</option>
             <option value="2025-03">March 2025</option>
