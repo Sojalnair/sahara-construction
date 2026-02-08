@@ -1064,6 +1064,8 @@ tbody td {
   background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
   transform: scaleX(0);
   transition: transform 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .site-card:hover {
@@ -1748,6 +1750,9 @@ tbody td {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
 }
 
 .edit-btn:hover {
@@ -1773,6 +1778,9 @@ tbody td {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
 }
 
 .delete-btn:hover {
@@ -1791,12 +1799,15 @@ tbody td {
   margin-top: 20px;
   padding-top: 20px;
   border-top: 2px solid #f0f0f0;
+  position: relative;
+  z-index: 1;
 }
 
 .card-actions button {
   flex: 1;
   position: relative;
   overflow: hidden;
+  pointer-events: auto;
 }
 
 .card-actions button::before {
