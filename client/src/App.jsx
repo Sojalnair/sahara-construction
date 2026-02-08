@@ -4,7 +4,7 @@ import axios from 'axios';
 import './App.css';
 
 // API Base URL
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://sahara-construction.onrender.com/';
 
 // Axios instance
 const api = axios.create({
