@@ -580,32 +580,34 @@ function EmployeeDashboard({ user }) {
 
       <div className="my-attendance">
         <h3>My Attendance History</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Site</th>
-              <th>Status</th>
-              <th>Hours Worked</th>
-            </tr>
-          </thead>
-          <tbody>
-            {myAttendance.length > 0 ? (
-              myAttendance.map((att) => (
-                <tr key={att._id}>
-                  <td>{new Date(att.date).toLocaleDateString()}</td>
-                  <td>{att.site?.name || 'N/A'}</td>
-                  <td><span className={`status ${att.status.toLowerCase()}`}>{att.status}</span></td>
-                  <td>{att.hoursWorked || '-'}</td>
-                </tr>
-              ))
-            ) : (
+        <div className="table-container">
+          <table>
+            <thead>
               <tr>
-                <td colSpan="4" style={{ textAlign: 'center' }}>No attendance records found</td>
+                <th>Date</th>
+                <th>Site</th>
+                <th>Status</th>
+                <th>Hours Worked</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {myAttendance.length > 0 ? (
+                myAttendance.map((att) => (
+                  <tr key={att._id}>
+                    <td>{new Date(att.date).toLocaleDateString()}</td>
+                    <td>{att.site?.name || 'N/A'}</td>
+                    <td><span className={`status ${att.status.toLowerCase()}`}>{att.status}</span></td>
+                    <td>{att.hoursWorked || '-'}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center' }}>No attendance records found</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -803,65 +805,67 @@ function Employees() {
         </form>
       )}
 
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Role</th>
-            <th>Salary</th>
-            <th>Days Worked</th>
-            <th>Total Earned</th>
-            <th>Paid</th>
-            <th>Pending</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {employees.map((emp) => {
-            const stats = employeeStats[emp._id] || { totalDays: 0, presentDays: 0, totalHours: 0 };
-            const payment = calculatePayment(emp, stats);
-            return (
-              <tr key={emp._id}>
-                <td><strong>{emp.name}</strong></td>
-                <td>{emp.phone}</td>
-                <td>{emp.role}</td>
-                <td>
-                  <div>₹{emp.salaryAmount}</div>
-                  <small style={{color: '#999'}}>({emp.salaryType})</small>
-                </td>
-                <td>
-                  <span className="stats-badge">{stats.presentDays} days</span>
-                </td>
-                <td>
-                  <span className="money-badge earned">₹{payment.totalEarned.toLocaleString()}</span>
-                </td>
-                <td>
-                  <span className="money-badge paid">₹{payment.totalPaid.toLocaleString()}</span>
-                </td>
-                <td>
-                  {payment.overpaid > 0 ? (
-                    <span className="money-badge overpaid">-₹{payment.overpaid.toLocaleString()}</span>
-                  ) : (
-                    <span className="money-badge pending">₹{payment.pending.toLocaleString()}</span>
-                  )}
-                </td>
-                <td>
-                  <span className={`status-badge ${emp.isActive ? 'active' : 'inactive'}`}>
-                    {emp.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td>
-                  <button onClick={() => handleDelete(emp._id)} className="delete-btn">
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Role</th>
+              <th>Salary</th>
+              <th>Days Worked</th>
+              <th>Total Earned</th>
+              <th>Paid</th>
+              <th>Pending</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {employees.map((emp) => {
+              const stats = employeeStats[emp._id] || { totalDays: 0, presentDays: 0, totalHours: 0 };
+              const payment = calculatePayment(emp, stats);
+              return (
+                <tr key={emp._id}>
+                  <td><strong>{emp.name}</strong></td>
+                  <td>{emp.phone}</td>
+                  <td>{emp.role}</td>
+                  <td>
+                    <div>₹{emp.salaryAmount}</div>
+                    <small style={{color: '#999'}}>({emp.salaryType})</small>
+                  </td>
+                  <td>
+                    <span className="stats-badge">{stats.presentDays} days</span>
+                  </td>
+                  <td>
+                    <span className="money-badge earned">₹{payment.totalEarned.toLocaleString()}</span>
+                  </td>
+                  <td>
+                    <span className="money-badge paid">₹{payment.totalPaid.toLocaleString()}</span>
+                  </td>
+                  <td>
+                    {payment.overpaid > 0 ? (
+                      <span className="money-badge overpaid">-₹{payment.overpaid.toLocaleString()}</span>
+                    ) : (
+                      <span className="money-badge pending">₹{payment.pending.toLocaleString()}</span>
+                    )}
+                  </td>
+                  <td>
+                    <span className={`status-badge ${emp.isActive ? 'active' : 'inactive'}`}>
+                      {emp.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td>
+                    <button onClick={() => handleDelete(emp._id)} className="delete-btn">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -1324,46 +1328,48 @@ function Attendance() {
         </div>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Employee</th>
-            <th>Site</th>
-            <th>Clock In</th>
-            <th>Clock Out</th>
-            <th>Status</th>
-            <th>Hours</th>
-            <th>GPS Location</th>
-          </tr>
-        </thead>
-        <tbody>
-          {attendance.map((att) => (
-            <tr key={att._id}>
-              <td>{new Date(att.date).toLocaleDateString()}</td>
-              <td>{att.employee?.name || 'N/A'}</td>
-              <td>{att.site?.name || 'N/A'}</td>
-              <td>{att.clockIn ? new Date(att.clockIn).toLocaleTimeString() : '-'}</td>
-              <td>{att.clockOut ? new Date(att.clockOut).toLocaleTimeString() : '-'}</td>
-              <td><span className={`status ${att.status.toLowerCase()}`}>{att.status}</span></td>
-              <td>{att.hoursWorked || '-'}</td>
-              <td>
-                {att.markedFrom && att.markedFrom.latitude ? (
-                  <a 
-                    href={`https://www.google.com/maps?q=${att.markedFrom.latitude},${att.markedFrom.longitude}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="gps-link"
-                  >
-                    📍 View Map
-                    {att.markedFrom.distance && ` (${att.markedFrom.distance}m)`}
-                  </a>
-                ) : '-'}
-              </td>
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Employee</th>
+              <th>Site</th>
+              <th>Clock In</th>
+              <th>Clock Out</th>
+              <th>Status</th>
+              <th>Hours</th>
+              <th>GPS Location</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {attendance.map((att) => (
+              <tr key={att._id}>
+                <td>{new Date(att.date).toLocaleDateString()}</td>
+                <td>{att.employee?.name || 'N/A'}</td>
+                <td>{att.site?.name || 'N/A'}</td>
+                <td>{att.clockIn ? new Date(att.clockIn).toLocaleTimeString() : '-'}</td>
+                <td>{att.clockOut ? new Date(att.clockOut).toLocaleTimeString() : '-'}</td>
+                <td><span className={`status ${att.status.toLowerCase()}`}>{att.status}</span></td>
+                <td>{att.hoursWorked || '-'}</td>
+                <td>
+                  {att.markedFrom && att.markedFrom.latitude ? (
+                    <a 
+                      href={`https://www.google.com/maps?q=${att.markedFrom.latitude},${att.markedFrom.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="gps-link"
+                    >
+                      📍 View Map
+                      {att.markedFrom.distance && ` (${att.markedFrom.distance}m)`}
+                    </a>
+                  ) : '-'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -1625,37 +1631,39 @@ function Expenses() {
         </form>
       )}
 
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Site</th>
-            <th>Category</th>
-            <th>Employee</th>
-            <th>Amount</th>
-            <th>Description</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredExpenses.map((exp) => (
-            <tr key={exp._id}>
-              <td>{new Date(exp.date).toLocaleDateString()}</td>
-              <td>{exp.site?.name || 'N/A'}</td>
-              <td>{exp.category}</td>
-              <td>{exp.employee ? `${exp.employee.name} (${exp.employee.role})` : '-'}</td>
-              <td>₹{exp.amount.toLocaleString()}</td>
-              <td>{exp.description || '-'}</td>
-              <td>{exp.paymentStatus}</td>
-              <td>
-                <button onClick={() => handleEdit(exp)} className="edit-btn" style={{marginRight: '5px'}}>Edit</button>
-                <button onClick={() => handleDelete(exp._id)} className="delete-btn">Delete</button>
-              </td>
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Site</th>
+              <th>Category</th>
+              <th>Employee</th>
+              <th>Amount</th>
+              <th>Description</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredExpenses.map((exp) => (
+              <tr key={exp._id}>
+                <td>{new Date(exp.date).toLocaleDateString()}</td>
+                <td>{exp.site?.name || 'N/A'}</td>
+                <td>{exp.category}</td>
+                <td>{exp.employee ? `${exp.employee.name} (${exp.employee.role})` : '-'}</td>
+                <td>₹{exp.amount.toLocaleString()}</td>
+                <td>{exp.description || '-'}</td>
+                <td>{exp.paymentStatus}</td>
+                <td>
+                  <button onClick={() => handleEdit(exp)} className="edit-btn" style={{marginRight: '5px'}}>Edit</button>
+                  <button onClick={() => handleDelete(exp._id)} className="delete-btn">Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
