@@ -3458,3 +3458,202 @@ input[type="date"]:focus::-webkit-calendar-picker-indicator,
 input[type="date"]:active::-webkit-calendar-picker-indicator {
   z-index: 1010 !important;
 }
+/* Site-wise Expense Report Styles */
+.site-expense-report {
+  padding: 20px;
+}
+
+.report-filters {
+  margin: 20px 0;
+  padding: 15px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.report-filters select,
+.report-filters input {
+  padding: 10px 15px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  min-width: 150px;
+}
+
+.report-filters select:focus,
+.report-filters input:focus {
+  border-color: #667eea;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.expense-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.site-expense-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.site-expense-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.site-expense-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.site-expense-card h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.expense-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.expense-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.expense-item:hover {
+  background: #e9ecef;
+  transform: translateX(4px);
+}
+
+.expense-item.materials {
+  border-left: 4px solid #e67e22;
+}
+
+.expense-item.transport {
+  border-left: 4px solid #3498db;
+}
+
+.expense-item.miscellaneous {
+  border-left: 4px solid #9b59b6;
+}
+
+.expense-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.expense-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.expense-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.expense-total {
+  margin-top: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 18px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* Mobile responsiveness for expense report */
+@media (max-width: 768px) {
+  .expense-summary-cards {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .site-expense-card {
+    padding: 20px;
+  }
+  
+  .report-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .report-filters select,
+  .report-filters input {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .expense-item {
+    padding: 10px;
+  }
+  
+  .expense-amount {
+    font-size: 16px;
+  }
+}
+
+/* Animation for expense cards */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.site-expense-card {
+  animation: slideInUp 0.5s ease-out;
+}
+
+.site-expense-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.site-expense-card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.site-expense-card:nth-child(4) {
+  animation-delay: 0.3s;
+}

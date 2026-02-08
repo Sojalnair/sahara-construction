@@ -662,6 +662,196 @@ function EmployeeDashboard({ user }) {
   );
 }
 
+// Site-wise Expense Report Component
+function SiteExpenseReport() {
+  const [sites, setSites] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [selectedSite, setSelectedSite] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [siteExpenseData, setSiteExpenseData] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchSites();
+    fetchExpenses();
+  }, []);
+
+  useEffect(() => {
+    calculateSiteExpenses();
+  }, [expenses, selectedSite, selectedMonth]);
+
+  const fetchSites = async () => {
+    try {
+      const response = await api.get('/sites');
+      setSites(response.data.data || []);
+    } catch (err) {
+      console.error('Error fetching sites:', err);
+    }
+  };
+
+  const fetchExpenses = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/expenses');
+      setExpenses(response.data.data || []);
+    } catch (err) {
+      console.error('Error fetching expenses:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateSiteExpenses = () => {
+    const [year, month] = selectedMonth.split('-');
+    const monthStart = new Date(year, month - 1, 1);
+    const monthEnd = new Date(year, month, 0);
+
+    // Filter expenses by month and exclude Labour category
+    const filteredExpenses = expenses.filter(exp => {
+      const expDate = new Date(exp.date);
+      const isInMonth = expDate >= monthStart && expDate <= monthEnd;
+      const isNotLabour = exp.category !== 'Labour'; // Exclude employee costs
+      const matchesSite = !selectedSite || exp.site?._id === selectedSite;
+      
+      return isInMonth && isNotLabour && matchesSite;
+    });
+
+    // Group by site
+    const siteData = {};
+    
+    filteredExpenses.forEach(exp => {
+      const siteId = exp.site?._id;
+      const siteName = exp.site?.name || 'Unknown Site';
+      
+      if (!siteData[siteId]) {
+        siteData[siteId] = {
+          siteName,
+          materials: 0,
+          transport: 0,
+          miscellaneous: 0,
+          total: 0,
+          expenses: []
+        };
+      }
+      
+      siteData[siteId].expenses.push(exp);
+      siteData[siteId][exp.category.toLowerCase()] += exp.amount;
+      siteData[siteId].total += exp.amount;
+    });
+
+    setSiteExpenseData(siteData);
+  };
+
+  const exportToCSV = () => {
+    const csvData = [];
+    csvData.push(['Site Name', 'Materials', 'Transport', 'Miscellaneous', 'Total']);
+    
+    Object.values(siteExpenseData).forEach(site => {
+      csvData.push([
+        site.siteName,
+        site.materials,
+        site.transport,
+        site.miscellaneous,
+        site.total
+      ]);
+    });
+    
+    const csvContent = csvData.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `site-expenses-${selectedMonth}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="site-expense-report">
+      <div className="header">
+        <h2>Site-wise Expense Report</h2>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={exportToCSV} style={{ background: '#28a745' }}>
+            Export CSV
+          </button>
+          <button onClick={fetchExpenses} style={{ background: '#17a2b8' }}>
+            Refresh Data
+          </button>
+        </div>
+      </div>
+
+      <div className="report-filters">
+        <select 
+          value={selectedSite}
+          onChange={(e) => setSelectedSite(e.target.value)}
+          style={{ marginRight: '10px', padding: '8px' }}
+        >
+          <option value="">All Sites</option>
+          {sites.map((site) => (
+            <option key={site._id} value={site._id}>{site.name}</option>
+          ))}
+        </select>
+        
+        <input 
+          type="month" 
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          style={{ padding: '8px' }}
+        />
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <p>Loading expense data...</p>
+        </div>
+      ) : (
+        <>
+          <div className="expense-summary-cards">
+            {Object.entries(siteExpenseData).map(([siteId, data]) => (
+              <div key={siteId} className="site-expense-card">
+                <h3>{data.siteName}</h3>
+                <div className="expense-breakdown">
+                  <div className="expense-item materials">
+                    <span className="expense-icon">🧱</span>
+                    <div>
+                      <div className="expense-label">Materials</div>
+                      <div className="expense-amount">₹{data.materials.toLocaleString()}</div>
+                    </div>
+                  </div>
+                  <div className="expense-item transport">
+                    <span className="expense-icon">🚚</span>
+                    <div>
+                      <div className="expense-label">Transport</div>
+                      <div className="expense-amount">₹{data.transport.toLocaleString()}</div>
+                    </div>
+                  </div>
+                  <div className="expense-item miscellaneous">
+                    <span className="expense-icon">📦</span>
+                    <div>
+                      <div className="expense-label">Miscellaneous</div>
+                      <div className="expense-amount">₹{data.miscellaneous.toLocaleString()}</div>
+                    </div>
+                  </div>
+                  <div className="expense-total">
+                    <strong>Total: ₹{data.total.toLocaleString()}</strong>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {Object.keys(siteExpenseData).length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+              <p>No expense data found for the selected criteria.</p>
+              <p>Note: Employee labour costs are excluded from this report.</p>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 // Employees Component
 function Employees() {
   const [employees, setEmployees] = useState([]);
@@ -839,13 +1029,24 @@ function Employees() {
         const empId = att.employee?._id;
         if (empId) {
           if (!stats[empId]) {
-            stats[empId] = { totalDays: 0, presentDays: 0, totalHours: 0 };
+            stats[empId] = { 
+              totalDays: 0, 
+              presentDays: 0, 
+              halfDays: 0,
+              totalHours: 0,
+              totalWageEarned: 0
+            };
           }
           stats[empId].totalDays++;
+          
           if (att.status === 'Present') {
             stats[empId].presentDays++;
+          } else if (att.status === 'Half-Day') {
+            stats[empId].halfDays++;
           }
+          
           stats[empId].totalHours += att.hoursWorked || 0;
+          stats[empId].totalWageEarned += att.wageEarned || 0;
         }
       });
       
@@ -856,13 +1057,19 @@ function Employees() {
   };
 
   const calculatePayment = (emp, stats) => {
-    const { presentDays = 0 } = stats;
+    const { presentDays = 0, halfDays = 0, totalWageEarned = 0 } = stats;
     const salaryAmount = emp.salaryAmount || 0;
     const totalAdvance = emp.totalAdvance || 0;
     
     let totalEarned = 0;
     if (emp.salaryType === 'daily') {
-      totalEarned = presentDays * salaryAmount;
+      // Use actual wage earned from attendance records (includes half-day calculations)
+      if (totalWageEarned > 0) {
+        totalEarned = totalWageEarned;
+      } else {
+        // Fallback calculation if wageEarned is not available
+        totalEarned = (presentDays * salaryAmount) + (halfDays * salaryAmount * 0.5);
+      }
     } else {
       // For monthly, assume full month salary
       totalEarned = salaryAmount;
@@ -874,7 +1081,10 @@ function Employees() {
       totalEarned,
       totalPaid: totalAdvance,
       pending: Math.max(0, pending),
-      overpaid: pending < 0 ? Math.abs(pending) : 0
+      overpaid: pending < 0 ? Math.abs(pending) : 0,
+      workingDays: presentDays + halfDays,
+      fullDays: presentDays,
+      halfDays: halfDays
     };
   };
 
@@ -1102,7 +1312,14 @@ function Employees() {
                         <small style={{color: '#999'}}>({emp.salaryType})</small>
                       </td>
                       <td>
-                        <span className="stats-badge">{stats.presentDays} days</span>
+                        <div>
+                          <span className="stats-badge">{payment.workingDays} days</span>
+                          {payment.halfDays > 0 && (
+                            <div style={{fontSize: '11px', color: '#f39c12', marginTop: '2px'}}>
+                              {payment.fullDays} full + {payment.halfDays} half
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td>
                         <span className="money-badge earned">₹{payment.totalEarned.toLocaleString()}</span>
@@ -2193,6 +2410,10 @@ function App() {
                 <span className="sidebar-icon">💰</span>
                 <span className="sidebar-text">Expenses</span>
               </NavLink>
+              <NavLink to="/site-reports" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"}>
+                <span className="sidebar-icon">📊</span>
+                <span className="sidebar-text">Site Reports</span>
+              </NavLink>
             </nav>
           </aside>
 
@@ -2204,6 +2425,7 @@ function App() {
               <Route path="/sites" element={<Sites />} />
               <Route path="/attendance" element={<Attendance />} />
               <Route path="/expenses" element={<Expenses />} />
+              <Route path="/site-reports" element={<SiteExpenseReport />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </main>
