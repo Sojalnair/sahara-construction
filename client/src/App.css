@@ -54,6 +54,13 @@ body {
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 14px;
+  background: white !important;
+  color: #333 !important;
+}
+
+.login-box input::placeholder {
+  color: #999 !important;
+  opacity: 1;
 }
 
 .login-box button {
