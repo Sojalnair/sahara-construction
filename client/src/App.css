@@ -4099,3 +4099,286 @@ input[type="date"]:active::-webkit-calendar-picker-indicator {
 .stat-item:nth-child(3) .stat-number {
   color: #f39c12;
 }
+/* Clickable Expense Items */
+.expense-item.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.expense-item.clickable:hover {
+  background: #e9ecef;
+  transform: translateX(8px) scale(1.02);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.expense-item.clickable::after {
+  content: '👆';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.expense-item.clickable:hover::after {
+  opacity: 1;
+}
+
+.click-hint {
+  font-size: 11px;
+  color: #667eea;
+  font-style: italic;
+  margin-top: 2px;
+  opacity: 0.8;
+}
+
+/* Expense Details Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.expense-modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-content {
+  padding: 0;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.expense-total-header {
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 2px solid #dee2e6;
+  font-size: 18px;
+  color: #2c3e50;
+}
+
+.expense-details-list {
+  padding: 0;
+}
+
+.expense-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f3f4;
+  transition: background 0.2s ease;
+}
+
+.expense-detail-item:hover {
+  background: #f8f9fa;
+}
+
+.expense-detail-item:last-child {
+  border-bottom: none;
+}
+
+.expense-date {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.expense-description {
+  flex: 1;
+  margin: 0 16px;
+}
+
+.expense-description strong {
+  color: #2c3e50;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.expense-amount-detail {
+  font-size: 16px;
+  font-weight: 700;
+  color: #27ae60;
+  min-width: 100px;
+  text-align: right;
+}
+
+.no-expenses {
+  padding: 40px 24px;
+  text-align: center;
+  color: #666;
+}
+
+.no-expenses p {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* Mobile responsiveness for modal */
+@media (max-width: 768px) {
+  .expense-modal {
+    width: 95%;
+    max-height: 90vh;
+    margin: 20px;
+  }
+  
+  .modal-header {
+    padding: 16px 20px;
+  }
+  
+  .modal-header h3 {
+    font-size: 18px;
+  }
+  
+  .expense-total-header {
+    padding: 16px 20px;
+    font-size: 16px;
+  }
+  
+  .expense-detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 20px;
+    gap: 8px;
+  }
+  
+  .expense-description {
+    margin: 0;
+    width: 100%;
+  }
+  
+  .expense-amount-detail {
+    text-align: left;
+    min-width: auto;
+    font-size: 18px;
+    color: #e67e22;
+  }
+  
+  .expense-date {
+    font-size: 13px;
+    min-width: auto;
+  }
+  
+  .click-hint {
+    font-size: 10px;
+  }
+  
+  .expense-item.clickable::after {
+    display: none; /* Hide emoji on mobile */
+  }
+}
+
+/* Enhanced hover effects for expense categories */
+.expense-item.materials.clickable:hover {
+  border-left-color: #d35400;
+  background: linear-gradient(135deg, #fdf2e9 0%, #fdebd0 100%);
+}
+
+.expense-item.transport.clickable:hover {
+  border-left-color: #2980b9;
+  background: linear-gradient(135deg, #ebf3fd 0%, #d6eaff 100%);
+}
+
+.expense-item.miscellaneous.clickable:hover {
+  border-left-color: #8e44ad;
+  background: linear-gradient(135deg, #f4ecf7 0%, #e8daef 100%);
+}
+
+/* Modal category-specific styling */
+.modal-header.materials {
+  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+}
+
+.modal-header.transport {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+
+.modal-header.miscellaneous {
+  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+}
+
+/* Smooth scrolling for modal content */
+.modal-content {
+  scroll-behavior: smooth;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}

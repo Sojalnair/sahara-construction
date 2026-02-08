@@ -6,9 +6,31 @@ import './App.css';
 // API Base URL - Update this with your actual Render backend URL
 const API_URL = import.meta.env.VITE_API_URL || 'https://sahara-construction.onrender.com/api';
 
+// Global refresh event system
+const refreshEvents = {
+  listeners: new Set(),
+  emit: (eventType) => {
+    refreshEvents.listeners.forEach(listener => {
+      if (listener.eventType === eventType || listener.eventType === 'all') {
+        listener.callback();
+      }
+    });
+  },
+  subscribe: (eventType, callback) => {
+    const listener = { eventType, callback };
+    refreshEvents.listeners.add(listener);
+    return () => refreshEvents.listeners.delete(listener);
+  }
+};
+
 // Axios instance
 const api = axios.create({
   baseURL: API_URL,
+  // Disable caching to ensure fresh data
+  headers: {
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache'
+  }
 });
 
 // Add token to requests
@@ -16,6 +38,11 @@ api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  // Add timestamp to prevent caching
+  if (config.url && !config.url.includes('_t=')) {
+    const separator = config.url.includes('?') ? '&' : '?';
+    config.url += `${separator}_t=${new Date().getTime()}`;
   }
   return config;
 });
@@ -673,12 +700,24 @@ function SiteExpenseReport() {
   const [siteExpenseData, setSiteExpenseData] = useState({});
   const [siteLabourData, setSiteLabourData] = useState({});
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [selectedExpenseDetails, setSelectedExpenseDetails] = useState(null);
 
   useEffect(() => {
     fetchSites();
     fetchExpenses();
     fetchAttendance();
     fetchEmployees();
+    
+    // Subscribe to global refresh events
+    const unsubscribe = refreshEvents.subscribe('expenses', () => {
+      fetchExpenses();
+      fetchAttendance();
+    });
+    
+    return unsubscribe;
   }, []);
 
   useEffect(() => {
@@ -688,7 +727,8 @@ function SiteExpenseReport() {
 
   const fetchSites = async () => {
     try {
-      const response = await api.get('/sites');
+      const timestamp = new Date().getTime();
+      const response = await api.get(`/sites?_t=${timestamp}`);
       setSites(response.data.data || []);
     } catch (err) {
       console.error('Error fetching sites:', err);
@@ -698,8 +738,11 @@ function SiteExpenseReport() {
   const fetchExpenses = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/expenses');
+      // Add cache-busting parameter to ensure fresh data
+      const timestamp = new Date().getTime();
+      const response = await api.get(`/expenses?_t=${timestamp}`);
       setExpenses(response.data.data || []);
+      setLastRefresh(new Date());
     } catch (err) {
       console.error('Error fetching expenses:', err);
     } finally {
@@ -709,7 +752,8 @@ function SiteExpenseReport() {
 
   const fetchAttendance = async () => {
     try {
-      const response = await api.get('/attendance');
+      const timestamp = new Date().getTime();
+      const response = await api.get(`/attendance?_t=${timestamp}`);
       setAttendance(response.data.data || []);
     } catch (err) {
       console.error('Error fetching attendance:', err);
@@ -718,7 +762,8 @@ function SiteExpenseReport() {
 
   const fetchEmployees = async () => {
     try {
-      const response = await api.get('/employees?limit=1000');
+      const timestamp = new Date().getTime();
+      const response = await api.get(`/employees?limit=1000&_t=${timestamp}`);
       setEmployees(response.data.data?.employees || []);
     } catch (err) {
       console.error('Error fetching employees:', err);
@@ -754,13 +799,25 @@ function SiteExpenseReport() {
           transport: 0,
           miscellaneous: 0,
           total: 0,
-          expenses: []
+          expenses: [],
+          materialExpenses: [],
+          transportExpenses: [],
+          miscellaneousExpenses: []
         };
       }
       
       siteData[siteId].expenses.push(exp);
       siteData[siteId][exp.category.toLowerCase()] += exp.amount;
       siteData[siteId].total += exp.amount;
+      
+      // Group expenses by category for detailed view
+      if (exp.category === 'Materials') {
+        siteData[siteId].materialExpenses.push(exp);
+      } else if (exp.category === 'Transport') {
+        siteData[siteId].transportExpenses.push(exp);
+      } else if (exp.category === 'Miscellaneous') {
+        siteData[siteId].miscellaneousExpenses.push(exp);
+      }
     });
 
     setSiteExpenseData(siteData);
@@ -829,6 +886,16 @@ function SiteExpenseReport() {
     setSiteLabourData(siteLabour);
   };
 
+  const showExpenseDetails = (siteName, category, expenseList, totalAmount) => {
+    setSelectedExpenseDetails({
+      siteName,
+      category,
+      expenses: expenseList,
+      totalAmount
+    });
+    setShowExpenseModal(true);
+  };
+
   const exportToCSV = () => {
     const csvData = [];
     
@@ -884,8 +951,21 @@ function SiteExpenseReport() {
           <button onClick={exportToCSV} style={{ background: '#28a745' }}>
             Export CSV
           </button>
-          <button onClick={() => { fetchExpenses(); fetchAttendance(); }} style={{ background: '#17a2b8' }}>
-            Refresh Data
+          <button onClick={async () => { 
+            setRefreshing(true);
+            try {
+              // Force refresh all data with cache busting
+              await Promise.all([
+                fetchExpenses(), 
+                fetchAttendance(), 
+                fetchSites(),
+                fetchEmployees()
+              ]);
+            } finally {
+              setRefreshing(false);
+            }
+          }} style={{ background: '#17a2b8' }} disabled={refreshing}>
+            {refreshing ? 'Refreshing...' : 'Refresh Data'}
           </button>
         </div>
       </div>
@@ -924,25 +1004,37 @@ function SiteExpenseReport() {
                 <div key={siteId} className="site-expense-card">
                   <h4>{data.siteName}</h4>
                   <div className="expense-breakdown">
-                    <div className="expense-item materials">
+                    <div 
+                      className="expense-item materials clickable" 
+                      onClick={() => showExpenseDetails(data.siteName, 'Materials', data.materialExpenses, data.materials)}
+                    >
                       <span className="expense-icon">🧱</span>
                       <div>
                         <div className="expense-label">Materials</div>
                         <div className="expense-amount">₹{data.materials.toLocaleString()}</div>
+                        <div className="click-hint">Click for details</div>
                       </div>
                     </div>
-                    <div className="expense-item transport">
+                    <div 
+                      className="expense-item transport clickable"
+                      onClick={() => showExpenseDetails(data.siteName, 'Transport', data.transportExpenses, data.transport)}
+                    >
                       <span className="expense-icon">🚚</span>
                       <div>
                         <div className="expense-label">Transport</div>
                         <div className="expense-amount">₹{data.transport.toLocaleString()}</div>
+                        <div className="click-hint">Click for details</div>
                       </div>
                     </div>
-                    <div className="expense-item miscellaneous">
+                    <div 
+                      className="expense-item miscellaneous clickable"
+                      onClick={() => showExpenseDetails(data.siteName, 'Miscellaneous', data.miscellaneousExpenses, data.miscellaneous)}
+                    >
                       <span className="expense-icon">📦</span>
                       <div>
                         <div className="expense-label">Miscellaneous</div>
                         <div className="expense-amount">₹{data.miscellaneous.toLocaleString()}</div>
+                        <div className="click-hint">Click for details</div>
                       </div>
                     </div>
                     <div className="expense-total">
@@ -1007,6 +1099,44 @@ function SiteExpenseReport() {
             </div>
           )}
         </>
+      )}
+
+      {/* Expense Details Modal */}
+      {showExpenseModal && selectedExpenseDetails && (
+        <div className="modal-overlay" onClick={() => setShowExpenseModal(false)}>
+          <div className="expense-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{selectedExpenseDetails.category} Expenses - {selectedExpenseDetails.siteName}</h3>
+              <button className="close-btn" onClick={() => setShowExpenseModal(false)}>×</button>
+            </div>
+            <div className="modal-content">
+              <div className="expense-total-header">
+                <strong>Total {selectedExpenseDetails.category}: ₹{selectedExpenseDetails.totalAmount.toLocaleString()}</strong>
+              </div>
+              <div className="expense-details-list">
+                {selectedExpenseDetails.expenses.length > 0 ? (
+                  selectedExpenseDetails.expenses.map((exp, index) => (
+                    <div key={index} className="expense-detail-item">
+                      <div className="expense-date">
+                        {new Date(exp.date).toLocaleDateString()}
+                      </div>
+                      <div className="expense-description">
+                        <strong>{exp.description || 'No description provided'}</strong>
+                      </div>
+                      <div className="expense-amount-detail">
+                        ₹{exp.amount.toLocaleString()}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-expenses">
+                    <p>No {selectedExpenseDetails.category.toLowerCase()} expenses found for this period.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -2162,6 +2292,7 @@ function Expenses() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState('all');
+  const [refreshing, setRefreshing] = useState(false);
   const [formData, setFormData] = useState({
     site: '',
     category: 'Labour',
@@ -2180,16 +2311,22 @@ function Expenses() {
 
   const fetchExpenses = async () => {
     try {
-      const response = await api.get('/expenses');
+      setRefreshing(true);
+      const timestamp = new Date().getTime();
+      // Force cache bypass with multiple parameters
+      const response = await api.get(`/expenses?_t=${timestamp}&nocache=${Math.random()}`);
       setExpenses(response.data.data || []);
     } catch (err) {
       console.error('Error fetching expenses:', err);
+    } finally {
+      setRefreshing(false);
     }
   };
 
   const fetchSites = async () => {
     try {
-      const response = await api.get('/sites');
+      const timestamp = new Date().getTime();
+      const response = await api.get(`/sites?_t=${timestamp}`);
       setSites(response.data.data || []);
     } catch (err) {
       console.error('Error fetching sites:', err);
@@ -2199,14 +2336,15 @@ function Expenses() {
   const fetchEmployees = async () => {
     try {
       // Fetch all active employees without pagination limit
-      const response = await api.get('/employees?limit=1000&isActive=true');
+      const timestamp = new Date().getTime();
+      const response = await api.get(`/employees?limit=1000&isActive=true&_t=${timestamp}`);
       const employeesList = response.data.data?.employees || [];
       setEmployees(employeesList);
     } catch (err) {
       console.error('Error fetching employees:', err);
       // Fallback to try without auth for public endpoints
       try {
-        const publicResponse = await axios.get(`${API_URL}/employees/public/active`);
+        const publicResponse = await axios.get(`${API_URL}/employees/public/active?_t=${timestamp}`);
         setEmployees(publicResponse.data.data || []);
       } catch (publicErr) {
         console.error('Error fetching employees from public endpoint:', publicErr);
@@ -2233,7 +2371,13 @@ function Expenses() {
     if (window.confirm('Are you sure you want to delete this expense?')) {
       try {
         await api.delete(`/expenses/${id}`);
-        fetchExpenses();
+        // Force immediate refresh with cache bypass
+        await fetchExpenses();
+        // Emit refresh event to update other components
+        if (typeof refreshEvents !== 'undefined') {
+          refreshEvents.emit('expenses');
+        }
+        alert('Expense deleted successfully!');
       } catch (err) {
         alert(err.response?.data?.message || 'Error deleting expense');
       }
@@ -2267,7 +2411,16 @@ function Expenses() {
       setShowForm(false);
       setEditingId(null);
       setFormData({ site: '', category: 'Labour', amount: '', description: '', billAttachment: null, employee: '', date: new Date().toISOString().split('T')[0] });
-      fetchExpenses();
+      
+      // Force immediate refresh with cache bypass
+      await fetchExpenses();
+      
+      // Emit refresh event to update other components
+      if (typeof refreshEvents !== 'undefined') {
+        refreshEvents.emit('expenses');
+      }
+      
+      alert(`Expense ${editingId ? 'updated' : 'created'} successfully!`);
     } catch (err) {
       console.error(`Error ${editingId ? 'updating' : 'creating'} expense:`, err);
       alert(err.response?.data?.message || `Error ${editingId ? 'updating' : 'creating'} expense`);
@@ -2335,6 +2488,20 @@ function Expenses() {
           </select>
           <button onClick={() => setShowForm(!showForm)}>
             {showForm ? 'Cancel' : 'Add Expense'}
+          </button>
+          <button onClick={async () => {
+            setRefreshing(true);
+            try {
+              await Promise.all([
+                fetchExpenses(),
+                fetchSites(),
+                fetchEmployees()
+              ]);
+            } finally {
+              setRefreshing(false);
+            }
+          }} style={{ background: '#28a745', marginLeft: '10px' }} disabled={refreshing}>
+            {refreshing ? 'Refreshing...' : 'Refresh Data'}
           </button>
         </div>
       </div>
