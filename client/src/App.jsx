@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import axios from 'axios';
-import WebAuthnClient from './utils/webauthnClient';
-import BiometricRegistration from './components/biometric/BiometricRegistration';
 import './App.css';
 
 // API Base URL - Update this with your actual Render backend URL
@@ -23,6 +21,7 @@ api.interceptors.request.use((config) => {
 });
 
 // Login Component
+// Login Component
 function Login({ onLogin }) {
   const [loginType, setLoginType] = useState('admin'); // 'admin' or 'employee'
   const [email, setEmail] = useState('');
@@ -31,58 +30,6 @@ function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [showSetup, setShowSetup] = useState(false);
   const [setupData, setSetupData] = useState({ name: '', email: '', password: '' });
-  
-  // Biometric authentication state
-  const [biometricAvailable, setBiometricAvailable] = useState(false);
-  const [biometricLoading, setBiometricLoading] = useState(false);
-
-  // Check biometric support on mount
-  useEffect(() => {
-    checkBiometricAvailability();
-  }, []);
-
-  async function checkBiometricAvailability() {
-    try {
-      const supported = WebAuthnClient.isSupported();
-      const available = await WebAuthnClient.isPlatformAuthenticatorAvailable();
-      const hasCredential = WebAuthnClient.getStoredCredentialId() !== null;
-      setBiometricAvailable(supported && available && hasCredential);
-    } catch (err) {
-      console.error('Error checking biometric availability:', err);
-      setBiometricAvailable(false);
-    }
-  }
-
-  async function handleBiometricLogin() {
-    setBiometricLoading(true);
-    setError('');
-    
-    try {
-      // Step 1: Start authentication - get challenge from server
-      const startResponse = await api.post('/auth/webauthn/authenticate/start', {
-        credentialId: WebAuthnClient.getStoredCredentialId()
-      });
-      
-      const options = startResponse.data.data;
-      
-      // Step 2: Use WebAuthn API to authenticate
-      const credential = await WebAuthnClient.authenticate(options);
-      
-      // Step 3: Finish authentication - verify with server
-      const finishResponse = await api.post('/auth/webauthn/authenticate/finish', credential);
-      
-      // Step 4: Store token and login
-      const { token, user } = finishResponse.data.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      onLogin(user);
-    } catch (err) {
-      console.error('Biometric login error:', err);
-      setError(err.message || 'Biometric authentication failed. Please use traditional login.');
-    } finally {
-      setBiometricLoading(false);
-    }
-  }
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
@@ -147,32 +94,6 @@ function Login({ onLogin }) {
         
         {!showSetup ? (
           <>
-            {/* Biometric Login Button - shown only if available */}
-            {biometricAvailable && (
-              <div className="biometric-login-section">
-                <button 
-                  onClick={handleBiometricLogin} 
-                  className="biometric-btn"
-                  disabled={biometricLoading}
-                >
-                  {biometricLoading ? (
-                    <>
-                      <span className="loading-spinner">⏳</span>
-                      Authenticating...
-                    </>
-                  ) : (
-                    <>
-                      <span className="biometric-icon">🔐</span>
-                      Login with Biometrics
-                    </>
-                  )}
-                </button>
-                <div className="divider">
-                  <span>or use traditional login</span>
-                </div>
-              </div>
-            )}
-
             <div className="login-tabs">
               <button 
                 className={loginType === 'admin' ? 'active' : ''} 
@@ -1697,9 +1618,9 @@ function Expenses() {
 }
 
 // Main App Component
+// Main App Component
 function App() {
   const [user, setUser] = useState(null);
-  const [showBiometricRegistration, setShowBiometricRegistration] = useState(false);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -1708,54 +1629,8 @@ function App() {
     }
   }, []);
 
-  /**
-   * Check if user should be prompted for biometric registration
-   * Requirements: 1.1, 2.1, 9.3
-   */
-  const shouldShowBiometricPrompt = async () => {
-    try {
-      // Check if WebAuthn is supported
-      if (!WebAuthnClient.isSupported()) {
-        return false;
-      }
-
-      // Check if platform authenticator is available
-      const available = await WebAuthnClient.isPlatformAuthenticatorAvailable();
-      if (!available) {
-        return false;
-      }
-
-      // Check if user already has a credential stored locally
-      const hasStoredCredential = WebAuthnClient.getStoredCredentialId() !== null;
-      if (hasStoredCredential) {
-        return false;
-      }
-
-      // User doesn't have credentials, should show prompt
-      return true;
-    } catch (error) {
-      console.error('Error checking biometric prompt:', error);
-      return false;
-    }
-  };
-
-  const handleLogin = async (userData) => {
+  const handleLogin = (userData) => {
     setUser(userData);
-    
-    // Check if we should show biometric registration prompt
-    // Requirements: 1.1, 2.1, 9.3
-    const shouldShow = await shouldShowBiometricPrompt();
-    if (shouldShow) {
-      setShowBiometricRegistration(true);
-    }
-  };
-
-  const handleBiometricRegistrationComplete = () => {
-    setShowBiometricRegistration(false);
-  };
-
-  const handleBiometricRegistrationSkip = () => {
-    setShowBiometricRegistration(false);
   };
 
   const handleLogout = () => {
@@ -1766,18 +1641,6 @@ function App() {
 
   if (!user) {
     return <Login onLogin={handleLogin} />;
-  }
-
-  // Show biometric registration prompt if needed
-  // Requirements: 1.1, 2.1, 9.3
-  if (showBiometricRegistration) {
-    return (
-      <BiometricRegistration
-        user={user}
-        onComplete={handleBiometricRegistrationComplete}
-        onSkip={handleBiometricRegistrationSkip}
-      />
-    );
   }
 
   // Employee view - limited access
