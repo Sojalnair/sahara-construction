@@ -4,7 +4,13 @@ const Employee = require('../models/Employee');
 // Create expense
 exports.createExpense = async (req, res) => {
   try {
-    const expense = await Expense.create(req.body);
+    // Remove employee field if it's empty string to avoid ObjectId cast error
+    const expenseData = { ...req.body };
+    if (expenseData.employee === '' || expenseData.employee === null) {
+      delete expenseData.employee;
+    }
+    
+    const expense = await Expense.create(expenseData);
     
     // If it's a labour expense with an employee, update employee's totalAdvance
     if (expense.category === 'Labour' && expense.employee) {

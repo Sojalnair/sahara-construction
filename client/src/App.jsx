@@ -1330,9 +1330,13 @@ function Expenses() {
         category: formData.category,
         amount: formData.amount,
         description: formData.description,
-        employee: formData.employee,
         date: formData.date
       };
+      
+      // Only include employee if it has a value
+      if (formData.employee) {
+        submitData.employee = formData.employee;
+      }
       
       // Skip file upload for now - can be added later with proper Cloudinary setup
       // Just save the expense without the attachment
@@ -1437,7 +1441,10 @@ function Expenses() {
           </select>
           <select
             value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value, employee: '' })}
+            onChange={(e) => {
+              // Clear employee field when changing category
+              setFormData({ ...formData, category: e.target.value, employee: '' });
+            }}
           >
             <option value="Labour">Labour</option>
             <option value="Materials">Materials</option>
