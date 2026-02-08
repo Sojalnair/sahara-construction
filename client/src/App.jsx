@@ -1680,17 +1680,21 @@ function Attendance() {
       }
       
       const presentCount = dayAttendance.filter(att => att.status === 'Present').length;
+      const halfDayCount = dayAttendance.filter(att => att.status === 'Half-Day').length;
+      const leaveCount = dayAttendance.filter(att => att.status === 'Leave').length;
       
       // If filtering by employee, total is 1, otherwise all employees
       const totalEmployees = selectedEmployee ? 1 : employees.length;
       const absentCount = selectedEmployee 
         ? (dayAttendance.length === 0 ? 1 : 0) // If no record, employee is absent
-        : totalEmployees - presentCount;
+        : Math.max(0, totalEmployees - presentCount - halfDayCount - leaveCount);
       
       week[dayOfWeek] = {
         day,
         dateStr,
         presentCount,
+        halfDayCount,
+        leaveCount,
         absentCount,
         totalEmployees,
         isPast: new Date(dateStr) < new Date(new Date().toISOString().split('T')[0])
@@ -1864,6 +1868,24 @@ function Attendance() {
           </div>
         </div>
         <div className="calendar">
+          <div className="calendar-legend">
+            <div className="legend-item">
+              <div className="legend-color present"></div>
+              <span>Present</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color halfday"></div>
+              <span>Half-Day</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color leave"></div>
+              <span>Leave</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color absent"></div>
+              <span>Absent</span>
+            </div>
+          </div>
           <div className="calendar-weekdays">
             <div className="weekday">Sun</div>
             <div className="weekday">Mon</div>
@@ -1879,21 +1901,32 @@ function Attendance() {
                 {week.map((day, dayIdx) => (
                   <div 
                     key={dayIdx} 
-                    className={`calendar-day ${!day ? 'empty' : ''} ${day && !day.isPast ? 'future' : ''} ${day && day.presentCount > 0 ? 'has-present' : ''} ${day && day.absentCount > 0 && day.presentCount === 0 ? 'has-absent' : ''}`}
+                    className={`calendar-day ${!day ? 'empty' : ''} ${day && !day.isPast ? 'future' : ''} ${day && day.presentCount > 0 ? 'has-present' : ''} ${day && day.halfDayCount > 0 ? 'has-halfday' : ''} ${day && day.leaveCount > 0 ? 'has-leave' : ''} ${day && day.absentCount > 0 && day.presentCount === 0 && day.halfDayCount === 0 && day.leaveCount === 0 ? 'has-absent' : ''}`}
                   >
                     {day && (
                       <>
                         <div className="day-number">{day.day}</div>
                         <div className="day-stats">
-                          {day.presentCount > 0 ? (
+                          {day.presentCount > 0 && (
                             <div className="present-count" title="Present">
                               ✓ {day.presentCount}
                             </div>
-                          ) : day.absentCount > 0 ? (
+                          )}
+                          {day.halfDayCount > 0 && (
+                            <div className="halfday-count" title="Half-Day">
+                              ◐ {day.halfDayCount}
+                            </div>
+                          )}
+                          {day.leaveCount > 0 && (
+                            <div className="leave-count" title="Leave">
+                              🏖 {day.leaveCount}
+                            </div>
+                          )}
+                          {day.absentCount > 0 && day.presentCount === 0 && day.halfDayCount === 0 && day.leaveCount === 0 && (
                             <div className="absent-count" title="Absent">
                               ✗ {day.absentCount}
                             </div>
-                          ) : null}
+                          )}
                         </div>
                       </>
                     )}
