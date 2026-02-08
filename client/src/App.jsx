@@ -634,9 +634,9 @@ function Employees() {
   const fetchEmployees = async () => {
     try {
       console.log('Fetching employees from API...');
-      // Request all employees by setting a high limit
-      const response = await api.get('/employees?limit=1000');
+      const response = await api.get('/employees');
       console.log('Employees API response:', response.data);
+      
       // Backend returns { success, data: { employees, pagination } }
       const employeesList = response.data.data?.employees || [];
       console.log('Setting employees list:', employeesList);
