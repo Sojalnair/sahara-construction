@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
 
@@ -1667,31 +1667,63 @@ function App() {
     );
   }
 
-  // Admin view - full access
+  // Admin view - full access with sidebar
   return (
     <Router>
-      <div className="app">
-        <nav className="navbar">
-          <h1>Sahara Construction</h1>
-          <div className="nav-links">
-            <Link to="/">Dashboard</Link>
-            <Link to="/employees">Employees</Link>
-            <Link to="/sites">Sites</Link>
-            <Link to="/attendance">Attendance</Link>
-            <Link to="/expenses">Expenses</Link>
-            <button onClick={handleLogout} className="logout-btn">Logout</button>
+      <div className="app-with-sidebar">
+        {/* Top Header */}
+        <header className="top-header">
+          <div className="header-logo">
+            <span className="logo-icon">🏗️</span>
+            <span className="logo-text">Sahara Construction</span>
           </div>
-        </nav>
+          <div className="header-right">
+            <div className="user-info">
+              <span className="user-name">{user.name}</span>
+              <span className="user-role">{user.role}</span>
+            </div>
+            <button onClick={handleLogout} className="logout-btn-header">Logout</button>
+          </div>
+        </header>
 
-        <div className="content">
-          <Routes>
-            <Route path="/" element={<Dashboard user={user} />} />
-            <Route path="/employees" element={<Employees />} />
-            <Route path="/sites" element={<Sites />} />
-            <Route path="/attendance" element={<Attendance />} />
-            <Route path="/expenses" element={<Expenses />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+        <div className="main-layout">
+          {/* Sidebar Navigation */}
+          <aside className="sidebar">
+            <nav className="sidebar-nav">
+              <NavLink to="/" end className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"}>
+                <span className="sidebar-icon">📊</span>
+                <span className="sidebar-text">Dashboard</span>
+              </NavLink>
+              <NavLink to="/employees" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"}>
+                <span className="sidebar-icon">👥</span>
+                <span className="sidebar-text">Employees</span>
+              </NavLink>
+              <NavLink to="/attendance" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"}>
+                <span className="sidebar-icon">📋</span>
+                <span className="sidebar-text">Attendance</span>
+              </NavLink>
+              <NavLink to="/sites" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"}>
+                <span className="sidebar-icon">🏗️</span>
+                <span className="sidebar-text">Sites</span>
+              </NavLink>
+              <NavLink to="/expenses" className={({ isActive }) => isActive ? "sidebar-link active" : "sidebar-link"}>
+                <span className="sidebar-icon">💰</span>
+                <span className="sidebar-text">Expenses</span>
+              </NavLink>
+            </nav>
+          </aside>
+
+          {/* Main Content */}
+          <main className="main-content">
+            <Routes>
+              <Route path="/" element={<Dashboard user={user} />} />
+              <Route path="/employees" element={<Employees />} />
+              <Route path="/sites" element={<Sites />} />
+              <Route path="/attendance" element={<Attendance />} />
+              <Route path="/expenses" element={<Expenses />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </main>
         </div>
       </div>
     </Router>
