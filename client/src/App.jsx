@@ -692,13 +692,47 @@ function Employees() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Frontend validation
+    if (!formData.name.trim()) {
+      alert('Employee name is required');
+      return;
+    }
+    
+    if (!formData.phone.trim()) {
+      alert('Phone number is required');
+      return;
+    }
+    
+    // Validate phone number format (10 digits starting with 6-9)
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      alert('Please enter a valid 10-digit Indian phone number starting with 6, 7, 8, or 9');
+      return;
+    }
+    
+    if (!formData.role.trim()) {
+      alert('Employee role is required');
+      return;
+    }
+    
+    if (!formData.salaryAmount || formData.salaryAmount <= 0) {
+      alert('Please enter a valid salary amount');
+      return;
+    }
+    
     try {
       await api.post('/employees', formData);
       setShowForm(false);
       setFormData({ name: '', phone: '', role: '', salaryType: 'daily', salaryAmount: '' });
       fetchEmployees();
+      alert('Employee created successfully!');
     } catch (err) {
-      alert(err.response?.data?.message || 'Error creating employee');
+      console.error('Error creating employee:', err);
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.errors?.join(', ') || 
+                          'Error creating employee';
+      alert(errorMessage);
     }
   };
 
@@ -731,9 +765,16 @@ function Employees() {
             required
           />
           <input
-            placeholder="Phone (10 digits)"
+            type="tel"
+            placeholder="Phone (10 digits starting with 6-9)"
             value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            onChange={(e) => {
+              // Only allow digits and limit to 10 characters
+              const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+              setFormData({ ...formData, phone: value });
+            }}
+            pattern="[6-9][0-9]{9}"
+            maxLength="10"
             required
           />
           <input
@@ -754,6 +795,8 @@ function Employees() {
             placeholder="Salary Amount"
             value={formData.salaryAmount}
             onChange={(e) => setFormData({ ...formData, salaryAmount: e.target.value })}
+            min="1"
+            step="1"
             required
           />
           <button type="submit">Create Employee</button>
