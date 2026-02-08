@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import axios from 'axios';
+import WebAuthnClient from './utils/webauthnClient';
+import BiometricRegistration from './components/biometric/BiometricRegistration';
 import './App.css';
 
 // API Base URL - Update this with your actual Render backend URL
@@ -29,6 +31,58 @@ function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [showSetup, setShowSetup] = useState(false);
   const [setupData, setSetupData] = useState({ name: '', email: '', password: '' });
+  
+  // Biometric authentication state
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+
+  // Check biometric support on mount
+  useEffect(() => {
+    checkBiometricAvailability();
+  }, []);
+
+  async function checkBiometricAvailability() {
+    try {
+      const supported = WebAuthnClient.isSupported();
+      const available = await WebAuthnClient.isPlatformAuthenticatorAvailable();
+      const hasCredential = WebAuthnClient.getStoredCredentialId() !== null;
+      setBiometricAvailable(supported && available && hasCredential);
+    } catch (err) {
+      console.error('Error checking biometric availability:', err);
+      setBiometricAvailable(false);
+    }
+  }
+
+  async function handleBiometricLogin() {
+    setBiometricLoading(true);
+    setError('');
+    
+    try {
+      // Step 1: Start authentication - get challenge from server
+      const startResponse = await api.post('/auth/webauthn/authenticate/start', {
+        credentialId: WebAuthnClient.getStoredCredentialId()
+      });
+      
+      const options = startResponse.data.data;
+      
+      // Step 2: Use WebAuthn API to authenticate
+      const credential = await WebAuthnClient.authenticate(options);
+      
+      // Step 3: Finish authentication - verify with server
+      const finishResponse = await api.post('/auth/webauthn/authenticate/finish', credential);
+      
+      // Step 4: Store token and login
+      const { token, user } = finishResponse.data.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      onLogin(user);
+    } catch (err) {
+      console.error('Biometric login error:', err);
+      setError(err.message || 'Biometric authentication failed. Please use traditional login.');
+    } finally {
+      setBiometricLoading(false);
+    }
+  }
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
@@ -93,6 +147,32 @@ function Login({ onLogin }) {
         
         {!showSetup ? (
           <>
+            {/* Biometric Login Button - shown only if available */}
+            {biometricAvailable && (
+              <div className="biometric-login-section">
+                <button 
+                  onClick={handleBiometricLogin} 
+                  className="biometric-btn"
+                  disabled={biometricLoading}
+                >
+                  {biometricLoading ? (
+                    <>
+                      <span className="loading-spinner">⏳</span>
+                      Authenticating...
+                    </>
+                  ) : (
+                    <>
+                      <span className="biometric-icon">🔐</span>
+                      Login with Biometrics
+                    </>
+                  )}
+                </button>
+                <div className="divider">
+                  <span>or use traditional login</span>
+                </div>
+              </div>
+            )}
+
             <div className="login-tabs">
               <button 
                 className={loginType === 'admin' ? 'active' : ''} 
@@ -826,6 +906,7 @@ function Employees() {
 function Sites() {
   const [sites, setSites] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -849,6 +930,31 @@ function Sites() {
     }
   };
 
+  const handleEdit = (site) => {
+    setEditingId(site._id);
+    setFormData({
+      name: site.name,
+      location: site.location,
+      startDate: site.startDate.split('T')[0],
+      status: site.status,
+      latitude: site.coordinates?.latitude || '',
+      longitude: site.coordinates?.longitude || '',
+      allowedRadius: site.allowedRadius || 200
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this site?')) {
+      try {
+        await api.delete(`/sites/${id}`);
+        fetchSites();
+      } catch (err) {
+        alert(err.response?.data?.message || 'Error deleting site');
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -859,13 +965,28 @@ function Sites() {
           longitude: parseFloat(formData.longitude)
         } : undefined
       };
-      await api.post('/sites', payload);
+      
+      if (editingId) {
+        // Update existing site
+        await api.put(`/sites/${editingId}`, payload);
+      } else {
+        // Create new site
+        await api.post('/sites', payload);
+      }
+      
       setShowForm(false);
+      setEditingId(null);
       setFormData({ name: '', location: '', startDate: '', status: 'Active', latitude: '', longitude: '', allowedRadius: 200 });
       fetchSites();
     } catch (err) {
-      alert(err.response?.data?.message || 'Error creating site');
+      alert(err.response?.data?.message || `Error ${editingId ? 'updating' : 'creating'} site`);
     }
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingId(null);
+    setFormData({ name: '', location: '', startDate: '', status: 'Active', latitude: '', longitude: '', allowedRadius: 200 });
   };
 
   return (
@@ -927,7 +1048,14 @@ function Sites() {
             min="50"
             max="1000"
           />
-          <button type="submit" style={{gridColumn: 'span 2'}}>Create Site</button>
+          <button type="submit" style={{gridColumn: 'span 2'}}>
+            {editingId ? 'Update Site' : 'Create Site'}
+          </button>
+          {editingId && (
+            <button type="button" onClick={handleCancel} style={{gridColumn: 'span 2', background: '#6c757d'}}>
+              Cancel Edit
+            </button>
+          )}
         </form>
       )}
 
@@ -945,6 +1073,10 @@ function Sites() {
               <p><strong>Radius:</strong> {site.allowedRadius}m</p>
             )}
             <p><strong>Expenses:</strong> ₹{site.totalExpenses?.toLocaleString() || 0}</p>
+            <div className="card-actions">
+              <button onClick={() => handleEdit(site)} className="edit-btn">Edit</button>
+              <button onClick={() => handleDelete(site._id)} className="delete-btn">Delete</button>
+            </div>
           </div>
         ))}
       </div>
@@ -1278,6 +1410,7 @@ function Expenses() {
   const [sites, setSites] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState('all');
   const [formData, setFormData] = useState({
     site: '',
@@ -1322,6 +1455,31 @@ function Expenses() {
     }
   };
 
+  const handleEdit = (expense) => {
+    setEditingId(expense._id);
+    setFormData({
+      site: expense.site?._id || '',
+      category: expense.category,
+      amount: expense.amount,
+      description: expense.description || '',
+      billAttachment: null,
+      employee: expense.employee?._id || '',
+      date: new Date(expense.date).toISOString().split('T')[0]
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this expense?')) {
+      try {
+        await api.delete(`/expenses/${id}`);
+        fetchExpenses();
+      } catch (err) {
+        alert(err.response?.data?.message || 'Error deleting expense');
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -1338,17 +1496,28 @@ function Expenses() {
         submitData.employee = formData.employee;
       }
       
-      // Skip file upload for now - can be added later with proper Cloudinary setup
-      // Just save the expense without the attachment
+      if (editingId) {
+        // Update existing expense
+        await api.put(`/expenses/${editingId}`, submitData);
+      } else {
+        // Create new expense
+        await api.post('/expenses', submitData);
+      }
       
-      await api.post('/expenses', submitData);
       setShowForm(false);
+      setEditingId(null);
       setFormData({ site: '', category: 'Labour', amount: '', description: '', billAttachment: null, employee: '', date: new Date().toISOString().split('T')[0] });
       fetchExpenses();
     } catch (err) {
-      console.error('Error creating expense:', err);
-      alert(err.response?.data?.message || 'Error creating expense');
+      console.error(`Error ${editingId ? 'updating' : 'creating'} expense:`, err);
+      alert(err.response?.data?.message || `Error ${editingId ? 'updating' : 'creating'} expense`);
     }
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingId(null);
+    setFormData({ site: '', category: 'Labour', amount: '', description: '', billAttachment: null, employee: '', date: new Date().toISOString().split('T')[0] });
   };
 
   // Filter expenses by selected month
@@ -1481,7 +1650,14 @@ function Expenses() {
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           />
-          <button type="submit" style={{gridColumn: 'span 2'}}>Create Expense</button>
+          <button type="submit" style={{gridColumn: 'span 2'}}>
+            {editingId ? 'Update Expense' : 'Create Expense'}
+          </button>
+          {editingId && (
+            <button type="button" onClick={handleCancel} style={{gridColumn: 'span 2', background: '#6c757d'}}>
+              Cancel Edit
+            </button>
+          )}
         </form>
       )}
 
@@ -1495,6 +1671,7 @@ function Expenses() {
             <th>Amount</th>
             <th>Description</th>
             <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -1507,6 +1684,10 @@ function Expenses() {
               <td>₹{exp.amount.toLocaleString()}</td>
               <td>{exp.description || '-'}</td>
               <td>{exp.paymentStatus}</td>
+              <td>
+                <button onClick={() => handleEdit(exp)} className="edit-btn" style={{marginRight: '5px'}}>Edit</button>
+                <button onClick={() => handleDelete(exp._id)} className="delete-btn">Delete</button>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -1518,6 +1699,7 @@ function Expenses() {
 // Main App Component
 function App() {
   const [user, setUser] = useState(null);
+  const [showBiometricRegistration, setShowBiometricRegistration] = useState(false);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -1526,8 +1708,54 @@ function App() {
     }
   }, []);
 
-  const handleLogin = (userData) => {
+  /**
+   * Check if user should be prompted for biometric registration
+   * Requirements: 1.1, 2.1, 9.3
+   */
+  const shouldShowBiometricPrompt = async () => {
+    try {
+      // Check if WebAuthn is supported
+      if (!WebAuthnClient.isSupported()) {
+        return false;
+      }
+
+      // Check if platform authenticator is available
+      const available = await WebAuthnClient.isPlatformAuthenticatorAvailable();
+      if (!available) {
+        return false;
+      }
+
+      // Check if user already has a credential stored locally
+      const hasStoredCredential = WebAuthnClient.getStoredCredentialId() !== null;
+      if (hasStoredCredential) {
+        return false;
+      }
+
+      // User doesn't have credentials, should show prompt
+      return true;
+    } catch (error) {
+      console.error('Error checking biometric prompt:', error);
+      return false;
+    }
+  };
+
+  const handleLogin = async (userData) => {
     setUser(userData);
+    
+    // Check if we should show biometric registration prompt
+    // Requirements: 1.1, 2.1, 9.3
+    const shouldShow = await shouldShowBiometricPrompt();
+    if (shouldShow) {
+      setShowBiometricRegistration(true);
+    }
+  };
+
+  const handleBiometricRegistrationComplete = () => {
+    setShowBiometricRegistration(false);
+  };
+
+  const handleBiometricRegistrationSkip = () => {
+    setShowBiometricRegistration(false);
   };
 
   const handleLogout = () => {
@@ -1538,6 +1766,18 @@ function App() {
 
   if (!user) {
     return <Login onLogin={handleLogin} />;
+  }
+
+  // Show biometric registration prompt if needed
+  // Requirements: 1.1, 2.1, 9.3
+  if (showBiometricRegistration) {
+    return (
+      <BiometricRegistration
+        user={user}
+        onComplete={handleBiometricRegistrationComplete}
+        onSkip={handleBiometricRegistrationSkip}
+      />
+    );
   }
 
   // Employee view - limited access
