@@ -2487,14 +2487,14 @@ tbody td {
 
 .logo-icon {
   font-size: 36px;
-  filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
+  filter: drop-shadow(0 2px 4px rgba(234, 255, 0, 0.945));
   animation: float 3s ease-in-out infinite;
 }
 
 .logo-text {
   font-size: 24px;
   font-weight: 800;
-  background: linear-gradient(135deg, #2c3e50 0%, #667eea 50%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff0000 0%, #667eea 50%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -3043,6 +3043,21 @@ tbody td {
   .date-modal {
     max-height: 90vh;
     overflow-y: auto;
+  }
+  
+  /* Delete button mobile optimization */
+  .delete-btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+  
+  /* Table actions column */
+  table th:last-child,
+  table td:last-child {
+    min-width: 80px;
+    text-align: center;
   }
 }
 

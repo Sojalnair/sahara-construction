@@ -278,26 +278,36 @@ function Dashboard({ user }) {
     expenses: 0
   });
 
+  const fetchStats = async () => {
+    try {
+      const [employees, sites, attendance, expenses] = await Promise.all([
+        api.get('/employees'),
+        api.get('/sites'),
+        api.get('/attendance'),
+        api.get('/expenses')
+      ]);
+      setStats({
+        employees: employees.data.data?.pagination?.total || 0,
+        sites: sites.data.data?.length || 0,
+        attendance: attendance.data.data?.length || 0,
+        expenses: expenses.data.data?.reduce((sum, exp) => sum + exp.amount, 0) || 0
+      });
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+    }
+  };
+
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const [employees, sites, attendance, expenses] = await Promise.all([
-          api.get('/employees'),
-          api.get('/sites'),
-          api.get('/attendance'),
-          api.get('/expenses')
-        ]);
-        setStats({
-          employees: employees.data.data?.pagination?.total || 0,
-          sites: sites.data.data?.length || 0,
-          attendance: attendance.data.data?.length || 0,
-          expenses: expenses.data.data?.reduce((sum, exp) => sum + exp.amount, 0) || 0
-        });
-      } catch (err) {
-        console.error('Error fetching stats:', err);
-      }
-    };
     fetchStats();
+    
+    // Subscribe to refresh events
+    const unsubscribeAttendance = refreshEvents.subscribe('attendance', () => {
+      fetchStats();
+    });
+    
+    return () => {
+      unsubscribeAttendance();
+    };
   }, []);
 
   return (
@@ -350,6 +360,15 @@ function EmployeeDashboard({ user }) {
   useEffect(() => {
     fetchMyAttendance();
     fetchSites();
+    
+    // Subscribe to attendance refresh events
+    const unsubscribeAttendance = refreshEvents.subscribe('attendance', () => {
+      fetchMyAttendance();
+    });
+    
+    return () => {
+      unsubscribeAttendance();
+    };
   }, [user._id]);
 
   useEffect(() => {
@@ -722,12 +741,19 @@ function SiteExpenseReport() {
     fetchEmployees();
     
     // Subscribe to global refresh events
-    const unsubscribe = refreshEvents.subscribe('expenses', () => {
+    const unsubscribeExpenses = refreshEvents.subscribe('expenses', () => {
       fetchExpenses();
       fetchAttendance();
     });
     
-    return unsubscribe;
+    const unsubscribeAttendance = refreshEvents.subscribe('attendance', () => {
+      fetchAttendance();
+    });
+    
+    return () => {
+      unsubscribeExpenses();
+      unsubscribeAttendance();
+    };
   }, []);
 
   useEffect(() => {
@@ -1166,6 +1192,15 @@ function LabourReports() {
     fetchSites();
     fetchAttendance();
     fetchEmployees();
+    
+    // Subscribe to attendance refresh events
+    const unsubscribeAttendance = refreshEvents.subscribe('attendance', () => {
+      fetchAttendance();
+    });
+    
+    return () => {
+      unsubscribeAttendance();
+    };
   }, []);
 
   useEffect(() => {
@@ -2153,6 +2188,27 @@ function Attendance() {
     }
   };
 
+  const deleteAttendance = async (attendanceId, employeeName, date) => {
+    if (!window.confirm(`Are you sure you want to delete attendance record for ${employeeName} on ${formatDateDDMMYYYY(date)}?\n\nThis action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await api.delete(`/attendance/${attendanceId}`);
+      
+      // Refresh attendance data to update everywhere
+      await fetchAttendance();
+      
+      // Emit refresh event to update other components
+      refreshEvents.emit('attendance');
+      
+      alert('Attendance record deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting attendance:', err);
+      alert(err.response?.data?.message || 'Error deleting attendance record');
+    }
+  };
+
   const fetchEmployees = async () => {
     try {
       // Fetch all active employees without pagination limit
@@ -2513,6 +2569,7 @@ function Attendance() {
               <th>Status</th>
               <th>Hours</th>
               <th>GPS Location</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -2547,6 +2604,37 @@ function Attendance() {
                       {att.markedFrom.distance && ` (${att.markedFrom.distance}m)`}
                     </a>
                   ) : '-'}
+                </td>
+                <td>
+                  <button
+                    onClick={() => deleteAttendance(att._id, att.employee?.name || 'Unknown Employee', att.date)}
+                    className="delete-btn"
+                    title="Delete attendance record"
+                    style={{
+                      background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
+                      color: 'white',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      transition: 'all 0.3s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.transform = 'translateY(-2px)';
+                      e.target.style.boxShadow = '0 4px 12px rgba(255, 107, 107, 0.5)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = '0 2px 8px rgba(255, 107, 107, 0.3)';
+                    }}
+                  >
+                    🗑️ Delete
+                  </button>
                 </td>
               </tr>
             ))}
@@ -2620,6 +2708,33 @@ function Attendance() {
                             <span className="value">{att.hoursWorked}h</span>
                           </div>
                         )}
+                        <div className="attendance-actions">
+                          <button
+                            onClick={() => {
+                              deleteAttendance(att._id, att.employee?.name || 'Unknown Employee', att.date);
+                              setShowDateModal(false); // Close modal after deletion
+                            }}
+                            className="delete-btn"
+                            title="Delete this attendance record"
+                            style={{
+                              background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
+                              color: 'white',
+                              border: 'none',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '11px',
+                              fontWeight: '600',
+                              marginTop: '8px',
+                              transition: 'all 0.3s ease',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            🗑️ Delete Record
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))
