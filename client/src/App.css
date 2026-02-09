@@ -4289,7 +4289,7 @@ input[type="date"]:active::-webkit-calendar-picker-indicator {
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
 }
 
-/* Date Details Modal */
+/* Date Details Modal - Mobile-First Design */
 .date-modal {
   background: white;
   border-radius: 16px;
@@ -4299,6 +4299,410 @@ input[type="date"]:active::-webkit-calendar-picker-indicator {
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: modalSlideIn 0.3s ease-out;
+}
+
+/* Mobile-first modal improvements */
+@media (max-width: 768px) {
+  .date-modal {
+    width: 95vw;
+    height: 90vh;
+    max-height: 90vh;
+    border-radius: 12px;
+    margin: 0;
+    position: fixed;
+    top: 5vh;
+    left: 2.5vw;
+  }
+  
+  .modal-header {
+    padding: 12px 15px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .modal-header h3 {
+    font-size: 16px;
+    margin: 0;
+  }
+  
+  .close-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 20px;
+  }
+  
+  .date-summary {
+    padding: 15px;
+  }
+  
+  .summary-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .stat-item {
+    padding: 8px;
+    border-radius: 8px;
+  }
+  
+  .stat-icon {
+    font-size: 18px;
+    margin-bottom: 3px;
+  }
+  
+  .stat-number {
+    font-size: 20px;
+    margin-bottom: 3px;
+  }
+  
+  .stat-label {
+    font-size: 10px;
+  }
+  
+  .employee-details-list {
+    padding: 15px;
+    max-height: calc(90vh - 200px);
+    overflow-y: auto;
+  }
+  
+  .employee-details-list h4 {
+    font-size: 16px;
+    margin-bottom: 12px;
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 8px 0;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  
+  .employee-detail-item {
+    flex-direction: column;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    border-left: 3px solid #667eea;
+  }
+  
+  .employee-info {
+    margin-bottom: 8px;
+  }
+  
+  .employee-name {
+    font-size: 15px;
+    margin-bottom: 3px;
+  }
+  
+  .employee-role {
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+  
+  .employee-phone {
+    font-size: 11px;
+  }
+  
+  .attendance-info {
+    margin-left: 0;
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 6px;
+  }
+  
+  .attendance-info > div {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    padding: 2px 0;
+  }
+  
+  .label {
+    font-size: 11px;
+    font-weight: 600;
+  }
+  
+  .value {
+    font-size: 11px;
+  }
+  
+  .status-badge {
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+}
+
+/* Extra small screens - Bottom sheet style */
+@media (max-width: 480px) {
+  .date-modal {
+    width: 100vw;
+    height: 85vh;
+    border-radius: 16px 16px 0 0;
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    left: 0;
+    animation: slideUpFromBottom 0.3s ease-out;
+  }
+  
+  @keyframes slideUpFromBottom {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  
+  .modal-header {
+    padding: 15px;
+    border-radius: 16px 16px 0 0;
+    position: relative;
+  }
+  
+  .modal-header::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 2px;
+  }
+  
+  .modal-header h3 {
+    font-size: 15px;
+    text-align: center;
+    margin-top: 8px;
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+  }
+  
+  .summary-stats {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  
+  .stat-item {
+    padding: 6px 4px;
+  }
+  
+  .stat-icon {
+    font-size: 16px;
+  }
+  
+  .stat-number {
+    font-size: 16px;
+  }
+  
+  .stat-label {
+    font-size: 9px;
+  }
+  
+  .employee-details-list {
+    padding: 12px;
+    max-height: calc(85vh - 180px);
+  }
+  
+  .employee-detail-item {
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+  
+  .employee-name {
+    font-size: 14px;
+  }
+  
+  .employee-role,
+  .employee-phone {
+    font-size: 11px;
+  }
+  
+  .attendance-info {
+    padding: 6px;
+  }
+  
+  .attendance-info > div {
+    margin-bottom: 3px;
+  }
+}
+
+/* Improved mobile calendar */
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 10px;
+    margin: 10px 0;
+  }
+  
+  .calendar-header {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 15px;
+  }
+  
+  .calendar-header h3 {
+    font-size: 18px;
+    text-align: center;
+  }
+  
+  .calendar-filters {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+  
+  .employee-filter,
+  .month-picker {
+    flex: 1;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+  
+  .calendar {
+    background: white;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  .calendar-weekdays {
+    margin-bottom: 8px;
+  }
+  
+  .weekday {
+    padding: 8px 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  
+  .calendar-day {
+    min-height: 45px;
+    padding: 4px;
+    border-radius: 6px;
+    border-width: 1px;
+  }
+  
+  .calendar-day.clickable:active {
+    transform: scale(0.95);
+    background: rgba(102, 126, 234, 0.1);
+  }
+  
+  .day-number {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  
+  .day-stats {
+    gap: 1px;
+  }
+  
+  .present-count,
+  .absent-count,
+  .halfday-count,
+  .leave-count {
+    font-size: 8px;
+    padding: 1px 3px;
+    border-radius: 3px;
+    line-height: 1.2;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-day {
+    min-height: 40px;
+    padding: 3px;
+  }
+  
+  .day-number {
+    font-size: 11px;
+  }
+  
+  .present-count,
+  .absent-count,
+  .halfday-count,
+  .leave-count {
+    font-size: 7px;
+    padding: 1px 2px;
+  }
+}
+
+/* Enhanced touch feedback */
+.calendar-day.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: rgba(102, 126, 234, 0.2);
+}
+
+.calendar-day.clickable:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+/* Loading state for modal */
+.modal-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  color: #666;
+}
+
+.modal-loading::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* No attendance state */
+.no-attendance {
+  text-align: center;
+  padding: 30px 20px;
+  color: #666;
+}
+
+.no-attendance p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Swipe indicator for mobile */
+@media (max-width: 480px) {
+  .modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
+  }
+  
+  .date-modal::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+  }
 }
 
 .date-summary {
@@ -4462,221 +4866,204 @@ input[type="date"]:active::-webkit-calendar-picker-indicator {
 
 /* Mobile Responsive Design Improvements */
 @media (max-width: 768px) {
-  /* Sidebar improvements */
+  /* App layout improvements */
+  .app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Sidebar improvements - Bottom navigation style */
   .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: 100%;
     height: auto;
-    position: relative;
+    background: white;
+    border-top: 2px solid #e9ecef;
     border-right: none;
-    border-bottom: 2px solid #e9ecef;
+    z-index: 100;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
   }
   
   .sidebar-nav {
     display: flex;
+    justify-content: space-around;
+    padding: 8px 5px;
     overflow-x: auto;
-    padding: 10px;
-    gap: 5px;
+    gap: 0;
   }
   
   .sidebar-link {
-    min-width: 80px;
-    padding: 10px 8px;
+    flex: 1;
+    min-width: 60px;
+    max-width: 80px;
+    padding: 8px 4px;
     text-align: center;
     white-space: nowrap;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+  
+  .sidebar-link:hover,
+  .sidebar-link.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
   }
   
   .sidebar-text {
-    font-size: 11px;
-    margin-top: 3px;
+    font-size: 10px;
+    margin-top: 2px;
+    font-weight: 500;
   }
   
   .sidebar-icon {
-    font-size: 18px;
+    font-size: 16px;
+    display: block;
+    margin-bottom: 2px;
   }
   
   /* Main content adjustments */
   .main-content {
     margin-left: 0;
-    padding: 10px;
+    margin-bottom: 70px; /* Space for bottom navigation */
+    padding: 0;
+    flex: 1;
   }
   
   .content {
-    padding: 15px 10px;
+    padding: 15px 10px 20px 10px;
   }
   
   /* Header improvements */
   .header {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
     align-items: stretch;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .header h2 {
+    font-size: 20px;
+    text-align: center;
+    margin: 0;
   }
   
   .header-actions {
+    display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
+    justify-content: center;
+  }
+  
+  .header-actions button {
+    flex: 1;
+    min-width: 120px;
+    padding: 10px 12px;
+    font-size: 13px;
+    border-radius: 8px;
   }
   
   /* Form improvements */
   .form {
     grid-template-columns: 1fr;
-    gap: 15px;
-    padding: 20px 15px;
+    gap: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+  }
+  
+  .form input,
+  .form select {
+    padding: 12px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    border-radius: 8px;
   }
   
   .form button {
     grid-column: span 1;
-    padding: 12px;
+    padding: 14px;
     font-size: 16px;
+    border-radius: 8px;
+    margin-top: 8px;
   }
   
   /* Table improvements */
   .table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
   }
   
   table {
-    min-width: 600px;
+    min-width: 700px;
     font-size: 12px;
   }
   
   th, td {
-    padding: 8px 6px;
+    padding: 10px 8px;
     white-space: nowrap;
   }
   
-  /* Calendar improvements */
-  .calendar-container {
-    padding: 15px;
-  }
-  
-  .calendar-header {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .calendar-filters {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .employee-filter,
-  .month-picker {
-    width: 100%;
-    max-width: 200px;
-  }
-  
-  .calendar-day {
-    min-height: 50px;
-    padding: 5px;
-    font-size: 12px;
-  }
-  
-  .day-number {
-    font-size: 14px;
-  }
-  
-  .day-stats {
-    gap: 2px;
-  }
-  
-  .present-count,
-  .absent-count,
-  .halfday-count,
-  .leave-count {
-    font-size: 10px;
-    padding: 2px 4px;
-  }
-  
-  /* Modal improvements */
-  .date-modal {
-    width: 95%;
-    max-height: 90vh;
-    margin: 20px;
-  }
-  
-  .modal-header {
-    padding: 15px;
-  }
-  
-  .modal-header h3 {
-    font-size: 16px;
-  }
-  
-  .summary-stats {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-  
-  .stat-item {
-    padding: 10px;
-  }
-  
-  .stat-number {
-    font-size: 20px;
-  }
-  
-  .employee-detail-item {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .attendance-info {
-    margin-left: 0;
-    width: 100%;
-  }
-  
-  .attendance-info > div {
-    flex-direction: column;
-    gap: 2px;
+  th {
+    font-size: 11px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   }
   
   /* Stats grid improvements */
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+    gap: 12px;
+    margin-bottom: 20px;
   }
   
   .stat-card {
     padding: 20px 15px;
+    border-radius: 12px;
   }
   
   .stat-card h3 {
-    font-size: 28px;
+    font-size: 24px;
+  }
+  
+  .stat-card p {
+    font-size: 12px;
   }
   
   /* Site cards improvements */
   .sites-grid {
     grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 12px;
   }
   
   .site-card {
-    padding: 20px 15px;
+    padding: 15px;
+    border-radius: 12px;
   }
   
   /* Expense cards improvements */
   .expense-summary-cards,
   .labour-summary-cards {
     grid-template-columns: 1fr;
-    gap: 15px;
-  }
-  
-  /* Navigation improvements */
-  .app-layout {
-    flex-direction: column;
+    gap: 12px;
   }
   
   /* Touch-friendly buttons */
   button {
     min-height: 44px;
     font-size: 14px;
-  }
-  
-  /* Improved spacing */
-  .dashboard h2,
-  .header h2 {
-    font-size: 24px;
+    border-radius: 8px;
+    font-weight: 500;
   }
   
   /* Better text readability */
@@ -4684,6 +5071,162 @@ input[type="date"]:active::-webkit-calendar-picker-indicator {
     font-size: 14px;
     line-height: 1.5;
   }
+  
+  /* Dashboard improvements */
+  .dashboard h2 {
+    font-size: 22px;
+    text-align: center;
+  }
+  
+  .dashboard p {
+    text-align: center;
+    font-size: 14px;
+  }
+}
+
+/* Extra small screens - iPhone SE, etc. */
+@media (max-width: 480px) {
+  .sidebar-nav {
+    padding: 6px 2px;
+  }
+  
+  .sidebar-link {
+    min-width: 50px;
+    max-width: 65px;
+    padding: 6px 2px;
+  }
+  
+  .sidebar-text {
+    font-size: 9px;
+  }
+  
+  .sidebar-icon {
+    font-size: 14px;
+  }
+  
+  .content {
+    padding: 10px 8px 15px 8px;
+  }
+  
+  .header {
+    padding: 12px;
+  }
+  
+  .header h2 {
+    font-size: 18px;
+  }
+  
+  .header-actions button {
+    min-width: 100px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  
+  .form {
+    padding: 12px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .stat-card {
+    padding: 15px 12px;
+  }
+  
+  .stat-card h3 {
+    font-size: 20px;
+  }
+  
+  /* Improved spacing for very small screens */
+  .main-content {
+    margin-bottom: 65px;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 60px;
+    height: 100vh;
+    border-right: 2px solid #e9ecef;
+    border-top: none;
+  }
+  
+  .sidebar-nav {
+    flex-direction: column;
+    padding: 10px 5px;
+    height: 100%;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+  
+  .sidebar-link {
+    width: 50px;
+    height: 50px;
+    padding: 8px 4px;
+    margin: 0;
+  }
+  
+  .sidebar-text {
+    font-size: 8px;
+  }
+  
+  .sidebar-icon {
+    font-size: 14px;
+  }
+  
+  .main-content {
+    margin-left: 60px;
+    margin-bottom: 0;
+  }
+}
+
+/* Loading states */
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+/* Improved focus states for accessibility */
+button:focus,
+input:focus,
+select:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Better error states */
+.error {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin: 10px 0;
+}
+
+/* Success states */
+.success {
+  background: #efe;
+  border: 1px solid #cfc;
+  color: #363;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin: 10px 0;
 }
 
 /* Extra small screens */
