@@ -2735,7 +2735,7 @@ tbody td {
     overflow-x: hidden;
     margin: 0;
     padding: 0;
-    width: 100vw;
+    width: 100%; max-width: 100%;
   }
   
   /* Top Header - Mobile Optimized */
@@ -2752,7 +2752,7 @@ tbody td {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100vw;
+    width: 100%; max-width: 100%;
     left: 0;
     right: 0;
   }
@@ -2910,7 +2910,7 @@ tbody td {
   .top-header {
     padding: 0;
     height: 55px;
-    width: 100vw;
+    width: 100%; max-width: 100%;
   }
   
   .header-logo {
@@ -2998,7 +2998,7 @@ tbody td {
   .top-header {
     height: 50px;
     padding: 0;
-    width: 100vw;
+    width: 100%; max-width: 100%;
   }
   
   .header-logo {
@@ -5061,7 +5061,7 @@ input[type="date"]:active::-webkit-calendar-picker-indicator {
 /* Extra small screens - Bottom sheet style */
 @media (max-width: 480px) {
   .date-modal {
-    width: 100vw;
+    width: 100%; max-width: 100%;
     height: 85vh;
     border-radius: 16px 16px 0 0;
     position: fixed;
