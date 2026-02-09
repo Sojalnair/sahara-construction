@@ -12,13 +12,13 @@ body {
   color: #333;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 html {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 /* App Container */
@@ -2732,7 +2732,7 @@ tbody td {
     display: flex;
     flex-direction: column;
     background: #f8f9fa;
-    overflow-x: hidden;
+    overflow-x: auto;
     margin: 0;
     padding: 0;
     width: 100%; max-width: 100%;
@@ -3092,7 +3092,7 @@ tbody td {
   
   /* Prevent horizontal scroll */
   body, .app-with-sidebar {
-    overflow-x: hidden;
+    overflow-x: auto;
     width: 100%;
   }
   
@@ -3487,12 +3487,12 @@ tbody td {
   
   /* Prevent horizontal scroll */
   body {
-    overflow-x: hidden;
+    overflow-x: auto;
   }
   
   .app-with-sidebar,
   .app {
-    overflow-x: hidden;
+    overflow-x: auto;
   }
 }
 
@@ -5950,3 +5950,4 @@ select:focus {
 .modal-content::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
 }
+
