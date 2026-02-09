@@ -592,41 +592,287 @@ body {
   color: #0c5460;
 }
 
-/* App Layout */
-.app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
-  position: relative;
+
+  .stats-grid > *,
+  .sites-grid > *,
+  .expense-summary-cards > *,
+  .labour-summary-cards > * {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border: none;
+    margin-bottom: 20px;
+  }
+  
+  /* Calendar Mobile Improvements */
+  .calendar-container {
+    padding: 20px;
+  }
+  
+  .calendar-header {
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .calendar-header h3 {
+    font-size: 18px;
+    text-align: center;
+    margin: 0;
+    color: #2c3e50;
+  }
+  
+  .calendar-filters {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .employee-filter,
+  .month-picker {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    background: white;
+  }
+  
+  .calendar {
+    background: transparent;
+  }
+  
+  .calendar-weekdays {
+    margin-bottom: 10px;
+  }
+  
+  .weekday {
+    padding: 10px 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    color: #667eea;
+    background: #f8f9fa;
+    border-radius: 8px;
+  }
+  
+  .calendar-day {
+    min-height: 50px;
+    padding: 8px;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    background: white;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .calendar-day.clickable:active {
+    transform: scale(0.95);
+    background: rgba(102, 126, 234, 0.1);
+  }
+  
+  .calendar-day:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  }
+  
+  .day-number {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #2c3e50;
+  }
+  
+  .day-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+  
+  .present-count,
+  .absent-count,
+  .halfday-count,
+  .leave-count {
+    font-size: 9px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  
+  /* Table Mobile Improvements */
+  .table-container {
+    padding: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    width: 100%;
+    min-width: 700px;
+    font-size: 12px;
+    border-collapse: collapse;
+  }
+  
+  th, td {
+    padding: 12px 8px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+  }
+  
+  tbody tr:hover {
+    background: #f8f9fa;
+  }
+  
+  /* Form Improvements */
+  .form {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .form input,
+  .form select {
+    padding: 14px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    background: white;
+    transition: all 0.3s ease;
+  }
+  
+  .form input:focus,
+  .form select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  
+  .form button {
+    padding: 16px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    color: white;
+    font-weight: 600;
+    margin-top: 10px;
+  }
+  
+  /* Stats Grid Mobile */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .stat-card {
+    padding: 20px;
+    text-align: center;
+    border-radius: 15px;
+    background: white;
+  }
+  
+  .stat-card h3 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .stat-card p {
+    font-size: 12px;
+    color: #666;
+    margin: 0;
+    font-weight: 500;
+  }
+
+/* Extra Small Screens */
+@media (max-width: 480px) {
+  
+  .content {
+    padding: 15px 10px;
+  }
+  
+  .header {
+    padding: 15px;
+  }
+  
+  .header h2 {
+    font-size: 20px;
+  }
+  
+  .calendar-container {
+    padding: 15px;
+  }
+  
+  .calendar-day {
+    min-height: 45px;
+    padding: 6px;
+  }
+  
+  .day-number {
+    font-size: 12px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .sidebar-link {
+    min-width: 45px;
+    height: 45px;
+    padding: 6px 8px;
+  }
+  
+  .sidebar-icon {
+    font-size: 16px;
+  }
+  
+  .sidebar-text {
+    font-size: 8px;
+  }
 }
 
-.app::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 10% 20%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(118, 75, 162, 0.05) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Old navbar styles removed - using enhanced navbar below */
-
-.content {
-  flex: 1;
-  padding: 40px;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-  background: transparent;
-  color: #333;
-  position: relative;
-  z-index: 1;
+/* Landscape Mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  
+  .main-content {
+    margin-bottom: 60px;
+  }
+  
+  .sidebar {
+    height: 60px;
+  }
+  
+  .sidebar-link {
+    height: 40px;
+    min-width: 60px;
+  }
+  
+  .sidebar-icon {
+    font-size: 16px;
+  }
+  
+  .sidebar-text {
+    font-size: 8px;
+  }
 }
 
 /* Ensure all text is visible */
@@ -2471,44 +2717,332 @@ tbody td {
 }
 
 @media (max-width: 768px) {
-  .main-layout {
+  /* Complete Mobile Layout Redesign */
+  .app-with-sidebar {
+    min-height: 100vh;
+    display: flex;
     flex-direction: column;
+    background: #f8f9fa;
+    overflow-x: hidden;
   }
   
-  .sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #e8eef5;
-    padding: 20px 0;
+  /* Top Header - Mobile Optimized */
+  .top-header {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    height: 60px;
+    padding: 0 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
   
-  .sidebar-nav {
-    flex-direction: row;
-    overflow-x: auto;
-    padding: 0 20px;
-  }
-  
-  .sidebar-link {
-    flex-direction: column;
-    min-width: 80px;
-    text-align: center;
+  .header-logo {
+    display: flex;
+    align-items: center;
     gap: 8px;
   }
   
-  .sidebar-text {
-    font-size: 12px;
+  .logo-icon {
+    font-size: 24px;
   }
   
-  .main-content {
-    padding: 20px;
+  .logo-text {
+    font-size: 16px;
+    font-weight: 600;
   }
   
-  .header-logo .logo-text {
-    font-size: 18px;
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   
   .user-info {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 12px;
+  }
+  
+  .user-name {
+    font-weight: 600;
+  }
+  
+  .user-role {
+    opacity: 0.8;
+    font-size: 10px;
+  }
+  
+  .logout-btn-header {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .logout-btn-header:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Main Layout - Mobile */
+  .main-layout {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: calc(100vh - 130px); /* Account for header and bottom nav */
+  }
+  
+  /* Bottom Navigation - Mobile */
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 70px;
+    background: white;
+    border-top: 1px solid #e9ecef;
+    border-right: none;
+    z-index: 150;
+    box-shadow: 0 -2px 15px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    padding: 0;
+  }
+  
+  .sidebar-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    padding: 0 10px;
+    height: 100%;
+    flex-direction: row;
+    overflow-x: visible;
+  }
+  
+  .sidebar-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 6px;
+    text-decoration: none;
+    color: #666;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    min-width: 45px;
+    height: 50px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  
+  .sidebar-link:hover,
+  .sidebar-link.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+  
+  .sidebar-icon {
+    font-size: 18px;
+    margin-bottom: 2px;
+  }
+  
+  .sidebar-text {
+    font-size: 9px;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1;
+  }
+  
+  /* Main Content - Mobile */
+  .main-content {
+    flex: 1;
+    padding: 15px;
+    margin-bottom: 70px; /* Space for bottom nav */
+    background: #f8f9fa;
+    min-height: calc(100vh - 130px);
+  }
+}
+
+/* Extra Small Screens - Enhanced */
+@media (max-width: 480px) {
+  .top-header {
+    padding: 0 10px;
+    height: 55px;
+  }
+  
+  .logo-text {
+    font-size: 14px;
+  }
+  
+  .user-info {
+    font-size: 10px;
+  }
+  
+  .logout-btn-header {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  
+  .main-content {
+    padding: 10px;
+  }
+  
+  .sidebar {
+    height: 65px;
+  }
+  
+  .sidebar-link {
+    min-width: 40px;
+    height: 45px;
+    padding: 6px 4px;
+  }
+  
+  .sidebar-icon {
+    font-size: 16px;
+  }
+  
+  .sidebar-text {
+    font-size: 8px;
+  }
+  
+  /* Card improvements for small screens */
+  .header {
+    padding: 15px 10px;
+    margin-bottom: 15px;
+  }
+  
+  .header h2 {
+    font-size: 18px;
+  }
+  
+  .form {
+    padding: 15px;
+    gap: 12px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .stat-card {
+    padding: 15px;
+  }
+  
+  .stat-card h3 {
+    font-size: 20px;
+  }
+}
+
+/* Landscape Mobile - Enhanced */
+@media (max-width: 768px) and (orientation: landscape) {
+  .top-header {
+    height: 50px;
+    padding: 0 15px;
+  }
+  
+  .logo-text {
+    font-size: 14px;
+  }
+  
+  .sidebar {
+    height: 60px;
+  }
+  
+  .sidebar-link {
+    height: 40px;
+    min-width: 50px;
+  }
+  
+  .sidebar-icon {
+    font-size: 16px;
+  }
+  
+  .sidebar-text {
+    font-size: 8px;
+  }
+  
+  .main-content {
+    margin-bottom: 60px;
+    min-height: calc(100vh - 110px);
+  }
+}
+
+/* Fix for iOS Safari viewport issues */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 768px) {
+    .app-with-sidebar {
+      min-height: -webkit-fill-available;
+    }
+    
+    .main-content {
+      min-height: calc(-webkit-fill-available - 130px);
+    }
+  }
+}
+
+/* Mobile Touch and Interaction Improvements */
+@media (max-width: 768px) {
+  /* Prevent zoom on input focus */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+  
+  /* Better touch targets */
+  button, .sidebar-link, .nav-links a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Prevent horizontal scroll */
+  body, .app-with-sidebar {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  /* Better table scrolling */
+  .table-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+  }
+  
+  /* Card spacing improvements */
+  .calendar-container,
+  .form,
+  .header {
+    margin-bottom: 15px;
+  }
+  
+  /* Button improvements */
+  .header-actions button {
+    padding: 12px 16px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+  
+  /* Modal improvements */
+  .date-modal {
+    max-height: 90vh;
+    overflow-y: auto;
   }
 }
 
