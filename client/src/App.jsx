@@ -3,6 +3,16 @@ import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react
 import axios from 'axios';
 import './App.css';
 
+// Date formatting utility for DD/MM/YYYY format
+const formatDateDDMMYYYY = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 // API Base URL - Update this with your actual Render backend URL
 const API_URL = import.meta.env.VITE_API_URL || 'https://sahara-construction.onrender.com/api';
 
@@ -670,7 +680,7 @@ function EmployeeDashboard({ user }) {
               {myAttendance.length > 0 ? (
                 myAttendance.map((att) => (
                   <tr key={att._id}>
-                    <td>{new Date(att.date).toLocaleDateString()}</td>
+                    <td>{formatDateDDMMYYYY(att.date)}</td>
                     <td>{att.site?.name || 'N/A'}</td>
                     <td><span className={`status ${att.status.toLowerCase()}`}>{att.status}</span></td>
                     <td>{att.hoursWorked || '-'}</td>
@@ -1118,7 +1128,7 @@ function SiteExpenseReport() {
                   selectedExpenseDetails.expenses.map((exp, index) => (
                     <div key={index} className="expense-detail-item">
                       <div className="expense-date">
-                        {new Date(exp.date).toLocaleDateString()}
+                        {formatDateDDMMYYYY(exp.date)}
                       </div>
                       <div className="expense-description">
                         <strong>{exp.description || 'No description provided'}</strong>
@@ -2075,7 +2085,7 @@ function Sites() {
             <h3>{site.name}</h3>
             <p><strong>Location:</strong> {site.location}</p>
             <p><strong>Status:</strong> <span className={`status ${site.status.toLowerCase()}`}>{site.status}</span></p>
-            <p><strong>Start Date:</strong> {new Date(site.startDate).toLocaleDateString()}</p>
+            <p><strong>Start Date:</strong> {formatDateDDMMYYYY(site.startDate)}</p>
             {site.coordinates && site.coordinates.latitude && (
               <p><strong>GPS:</strong> {site.coordinates.latitude.toFixed(6)}, {site.coordinates.longitude.toFixed(6)}</p>
             )}
@@ -2102,6 +2112,8 @@ function Attendance() {
   const [showForm, setShowForm] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [selectedEmployee, setSelectedEmployee] = useState(''); // Filter by employee
+  const [selectedDate, setSelectedDate] = useState(null); // For date click modal
+  const [showDateModal, setShowDateModal] = useState(false);
   const [formData, setFormData] = useState({
     employee: '',
     site: '',
@@ -2249,6 +2261,20 @@ function Attendance() {
   };
 
   const calendarWeeks = generateCalendar();
+
+  // Handle date click to show employee details
+  const handleDateClick = (day) => {
+    const dayAttendance = attendance.filter(att => 
+      new Date(att.date).toISOString().split('T')[0] === day.dateStr
+    );
+    
+    setSelectedDate({
+      ...day,
+      attendance: dayAttendance,
+      formattedDate: formatDateDDMMYYYY(day.dateStr)
+    });
+    setShowDateModal(true);
+  };
 
   return (
     <div className="attendance">
@@ -2436,7 +2462,9 @@ function Attendance() {
                 {week.map((day, dayIdx) => (
                   <div 
                     key={dayIdx} 
-                    className={`calendar-day ${!day ? 'empty' : ''} ${day && !day.isPast ? 'future' : ''} ${day && day.presentCount > 0 ? 'has-present' : ''} ${day && day.halfDayCount > 0 ? 'has-halfday' : ''} ${day && day.leaveCount > 0 ? 'has-leave' : ''} ${day && day.absentCount > 0 && day.presentCount === 0 && day.halfDayCount === 0 && day.leaveCount === 0 ? 'has-absent' : ''}`}
+                    className={`calendar-day ${!day ? 'empty' : ''} ${day && !day.isPast ? 'future' : ''} ${day && day.presentCount > 0 ? 'has-present' : ''} ${day && day.halfDayCount > 0 ? 'has-halfday' : ''} ${day && day.leaveCount > 0 ? 'has-leave' : ''} ${day && day.absentCount > 0 && day.presentCount === 0 && day.halfDayCount === 0 && day.leaveCount === 0 ? 'has-absent' : ''} ${day ? 'clickable' : ''}`}
+                    onClick={() => day && handleDateClick(day)}
+                    style={{ cursor: day ? 'pointer' : 'default' }}
                   >
                     {day && (
                       <>
@@ -2490,7 +2518,7 @@ function Attendance() {
           <tbody>
             {attendance.map((att) => (
               <tr key={att._id}>
-                <td>{new Date(att.date).toLocaleDateString()}</td>
+                <td>{formatDateDDMMYYYY(att.date)}</td>
                 <td>
                   {att.employee ? (
                     <div>
@@ -2525,6 +2553,86 @@ function Attendance() {
           </tbody>
         </table>
       </div>
+
+      {/* Date Details Modal */}
+      {showDateModal && selectedDate && (
+        <div className="modal-overlay" onClick={() => setShowDateModal(false)}>
+          <div className="date-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Attendance Details - {selectedDate.formattedDate}</h3>
+              <button className="close-btn" onClick={() => setShowDateModal(false)}>×</button>
+            </div>
+            <div className="modal-content">
+              <div className="date-summary">
+                <div className="summary-stats">
+                  <div className="stat-item present">
+                    <span className="stat-icon">✓</span>
+                    <span className="stat-number">{selectedDate.presentCount}</span>
+                    <span className="stat-label">Present</span>
+                  </div>
+                  <div className="stat-item halfday">
+                    <span className="stat-icon">◐</span>
+                    <span className="stat-number">{selectedDate.halfDayCount}</span>
+                    <span className="stat-label">Half-Day</span>
+                  </div>
+                  <div className="stat-item leave">
+                    <span className="stat-icon">🏖</span>
+                    <span className="stat-number">{selectedDate.leaveCount}</span>
+                    <span className="stat-label">Leave</span>
+                  </div>
+                  <div className="stat-item absent">
+                    <span className="stat-icon">✗</span>
+                    <span className="stat-number">{selectedDate.absentCount}</span>
+                    <span className="stat-label">Absent</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="employee-details-list">
+                <h4>Employee Details:</h4>
+                {selectedDate.attendance.length > 0 ? (
+                  selectedDate.attendance.map((att, index) => (
+                    <div key={index} className="employee-detail-item">
+                      <div className="employee-info">
+                        <div className="employee-name">{att.employee?.name || 'Unknown Employee'}</div>
+                        <div className="employee-role">{att.employee?.role || 'N/A'}</div>
+                        <div className="employee-phone">{att.employee?.phone || 'N/A'}</div>
+                      </div>
+                      <div className="attendance-info">
+                        <div className="site-name">
+                          <span className="label">Site:</span>
+                          <span className="value">{att.site?.name || 'N/A'}</span>
+                        </div>
+                        <div className="status-info">
+                          <span className="label">Status:</span>
+                          <span className={`status-badge ${att.status.toLowerCase()}`}>{att.status}</span>
+                        </div>
+                        <div className="time-info">
+                          <span className="label">Time:</span>
+                          <span className="value">
+                            {att.clockIn ? new Date(att.clockIn).toLocaleTimeString() : 'N/A'} - 
+                            {att.clockOut ? new Date(att.clockOut).toLocaleTimeString() : 'N/A'}
+                          </span>
+                        </div>
+                        {att.hoursWorked && (
+                          <div className="hours-info">
+                            <span className="label">Hours:</span>
+                            <span className="value">{att.hoursWorked}h</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-attendance">
+                    <p>No attendance records found for this date.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2877,7 +2985,7 @@ function Expenses() {
           <tbody>
             {filteredExpenses.map((exp) => (
               <tr key={exp._id}>
-                <td>{new Date(exp.date).toLocaleDateString()}</td>
+                <td>{formatDateDDMMYYYY(exp.date)}</td>
                 <td>{exp.site?.name || 'N/A'}</td>
                 <td>{exp.category}</td>
                 <td>{exp.employee ? `${exp.employee.name} (${exp.employee.role})` : '-'}</td>

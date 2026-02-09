@@ -4278,57 +4278,456 @@ input[type="date"]:active::-webkit-calendar-picker-indicator {
   font-size: 16px;
 }
 
-/* Mobile responsiveness for modal */
+/* Calendar clickable styling */
+.calendar-day.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-day.clickable:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+/* Date Details Modal */
+.date-modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.date-summary {
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 2px solid #dee2e6;
+}
+
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.stat-item.present {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+}
+
+.stat-item.halfday {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  color: #856404;
+}
+
+.stat-item.leave {
+  background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+  color: #0c5460;
+}
+
+.stat-item.absent {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  color: #721c24;
+}
+
+.stat-icon {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.employee-details-list {
+  padding: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.employee-details-list h4 {
+  margin-bottom: 15px;
+  color: #2c3e50;
+  font-size: 18px;
+}
+
+.employee-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 15px;
+  margin-bottom: 10px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+}
+
+.employee-info {
+  flex: 1;
+}
+
+.employee-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+
+.employee-role {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 3px;
+}
+
+.employee-phone {
+  font-size: 12px;
+  color: #999;
+}
+
+.attendance-info {
+  flex: 1;
+  margin-left: 20px;
+}
+
+.attendance-info > div {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.label {
+  font-weight: 600;
+  color: #555;
+  font-size: 13px;
+}
+
+.value {
+  color: #333;
+  font-size: 13px;
+}
+
+.status-badge {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-badge.present {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.half-day {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.leave {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-badge.absent {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.no-attendance {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+/* Mobile Responsive Design Improvements */
 @media (max-width: 768px) {
-  .expense-modal {
+  /* Sidebar improvements */
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 2px solid #e9ecef;
+  }
+  
+  .sidebar-nav {
+    display: flex;
+    overflow-x: auto;
+    padding: 10px;
+    gap: 5px;
+  }
+  
+  .sidebar-link {
+    min-width: 80px;
+    padding: 10px 8px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  
+  .sidebar-text {
+    font-size: 11px;
+    margin-top: 3px;
+  }
+  
+  .sidebar-icon {
+    font-size: 18px;
+  }
+  
+  /* Main content adjustments */
+  .main-content {
+    margin-left: 0;
+    padding: 10px;
+  }
+  
+  .content {
+    padding: 15px 10px;
+  }
+  
+  /* Header improvements */
+  .header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .header-actions {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  /* Form improvements */
+  .form {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    padding: 20px 15px;
+  }
+  
+  .form button {
+    grid-column: span 1;
+    padding: 12px;
+    font-size: 16px;
+  }
+  
+  /* Table improvements */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 600px;
+    font-size: 12px;
+  }
+  
+  th, td {
+    padding: 8px 6px;
+    white-space: nowrap;
+  }
+  
+  /* Calendar improvements */
+  .calendar-container {
+    padding: 15px;
+  }
+  
+  .calendar-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .calendar-filters {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .employee-filter,
+  .month-picker {
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .calendar-day {
+    min-height: 50px;
+    padding: 5px;
+    font-size: 12px;
+  }
+  
+  .day-number {
+    font-size: 14px;
+  }
+  
+  .day-stats {
+    gap: 2px;
+  }
+  
+  .present-count,
+  .absent-count,
+  .halfday-count,
+  .leave-count {
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+  
+  /* Modal improvements */
+  .date-modal {
     width: 95%;
     max-height: 90vh;
     margin: 20px;
   }
   
   .modal-header {
-    padding: 16px 20px;
+    padding: 15px;
   }
   
   .modal-header h3 {
-    font-size: 18px;
-  }
-  
-  .expense-total-header {
-    padding: 16px 20px;
     font-size: 16px;
   }
   
-  .expense-detail-item {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 16px 20px;
-    gap: 8px;
+  .summary-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
   
-  .expense-description {
-    margin: 0;
+  .stat-item {
+    padding: 10px;
+  }
+  
+  .stat-number {
+    font-size: 20px;
+  }
+  
+  .employee-detail-item {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .attendance-info {
+    margin-left: 0;
     width: 100%;
   }
   
-  .expense-amount-detail {
-    text-align: left;
-    min-width: auto;
-    font-size: 18px;
-    color: #e67e22;
+  .attendance-info > div {
+    flex-direction: column;
+    gap: 2px;
   }
   
-  .expense-date {
-    font-size: 13px;
-    min-width: auto;
+  /* Stats grid improvements */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
   }
   
-  .click-hint {
+  .stat-card {
+    padding: 20px 15px;
+  }
+  
+  .stat-card h3 {
+    font-size: 28px;
+  }
+  
+  /* Site cards improvements */
+  .sites-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .site-card {
+    padding: 20px 15px;
+  }
+  
+  /* Expense cards improvements */
+  .expense-summary-cards,
+  .labour-summary-cards {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  /* Navigation improvements */
+  .app-layout {
+    flex-direction: column;
+  }
+  
+  /* Touch-friendly buttons */
+  button {
+    min-height: 44px;
+    font-size: 14px;
+  }
+  
+  /* Improved spacing */
+  .dashboard h2,
+  .header h2 {
+    font-size: 24px;
+  }
+  
+  /* Better text readability */
+  body {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .sidebar-nav {
+    padding: 5px;
+  }
+  
+  .sidebar-link {
+    min-width: 60px;
+    padding: 8px 4px;
+  }
+  
+  .sidebar-text {
     font-size: 10px;
   }
   
-  .expense-item.clickable::after {
-    display: none; /* Hide emoji on mobile */
+  .sidebar-icon {
+    font-size: 16px;
+  }
+  
+  .content {
+    padding: 10px 5px;
+  }
+  
+  .form {
+    padding: 15px 10px;
+  }
+  
+  .calendar-day {
+    min-height: 40px;
+    padding: 3px;
+  }
+  
+  .day-number {
+    font-size: 12px;
+  }
+  
+  .summary-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
 }
 
