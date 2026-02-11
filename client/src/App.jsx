@@ -1643,13 +1643,8 @@ function Employees() {
     
     let totalEarned = 0;
     if (emp.salaryType === 'daily') {
-      // Use actual wage earned from attendance records (includes half-day calculations)
-      if (totalWageEarned > 0) {
-        totalEarned = totalWageEarned;
-      } else {
-        // Fallback calculation if wageEarned is not available
-        totalEarned = (presentDays * salaryAmount) + (halfDays * salaryAmount * 0.5);
-      }
+      // Always calculate based on present days and half days to ensure accuracy
+      totalEarned = (presentDays * salaryAmount) + (halfDays * salaryAmount * 0.5);
     } else {
       // For monthly, assume full month salary
       totalEarned = salaryAmount;
