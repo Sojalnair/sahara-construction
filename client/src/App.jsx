@@ -860,67 +860,77 @@ function SiteExpenseReport() {
   };
 
   const calculateSiteLabourDays = () => {
-    const [year, month] = selectedMonth.split('-');
-    const monthStart = new Date(year, month - 1, 1);
-    const monthEnd = new Date(year, month, 0);
+      const [year, month] = selectedMonth.split('-');
+      const monthStart = new Date(year, month - 1, 1);
+      const monthEnd = new Date(year, month, 0);
 
-    // Filter attendance by month
-    const filteredAttendance = attendance.filter(att => {
-      const attDate = new Date(att.date);
-      const isInMonth = attDate >= monthStart && attDate <= monthEnd;
-      const matchesSite = !selectedSite || att.site?._id === selectedSite;
-      
-      return isInMonth && matchesSite && (att.status === 'Present' || att.status === 'Half-Day');
-    });
+      // Filter attendance by month
+      const filteredAttendance = attendance.filter(att => {
+        const attDate = new Date(att.date);
+        const isInMonth = attDate >= monthStart && attDate <= monthEnd;
+        const matchesSite = !selectedSite || att.site?._id === selectedSite;
 
-    // Group by site and employee
-    const siteLabour = {};
-    
-    filteredAttendance.forEach(att => {
-      const siteId = att.site?._id;
-      const siteName = att.site?.name || 'Unknown Site';
-      const employeeId = att.employee?._id;
-      const employeeName = att.employee?.name || 'Unknown Employee';
-      const employeeRole = att.employee?.role || 'Worker';
-      
-      if (!siteLabour[siteId]) {
-        siteLabour[siteId] = {
-          siteName,
-          employees: {},
-          totalWorkDays: 0,
-          totalFullDays: 0,
-          totalHalfDays: 0
-        };
-      }
-      
-      if (!siteLabour[siteId].employees[employeeId]) {
-        siteLabour[siteId].employees[employeeId] = {
-          name: employeeName,
-          role: employeeRole,
-          fullDays: 0,
-          halfDays: 0,
-          totalDays: 0,
-          totalWages: 0
-        };
-      }
-      
-      const employee = siteLabour[siteId].employees[employeeId];
-      
-      if (att.status === 'Present') {
-        employee.fullDays++;
-        siteLabour[siteId].totalFullDays++;
-        employee.totalDays += 1; // Full day = 1
-      } else if (att.status === 'Half-Day') {
-        employee.halfDays++;
-        siteLabour[siteId].totalHalfDays++;
-        employee.totalDays += 0.5; // Half day = 0.5
-      }
-      employee.totalWages += att.wageEarned || 0;
-      siteLabour[siteId].totalWorkDays++;
-    });
+        return isInMonth && matchesSite && (att.status === 'Present' || att.status === 'Half-Day');
+      });
 
-    setSiteLabourData(siteLabour);
-  };
+      // Group by site and employee
+      const siteLabour = {};
+
+      filteredAttendance.forEach(att => {
+        const siteId = att.site?._id;
+        const siteName = att.site?.name || 'Unknown Site';
+        const employeeId = att.employee?._id;
+        const employeeName = att.employee?.name || 'Unknown Employee';
+        const employeeRole = att.employee?.role || 'Worker';
+
+        if (!siteLabour[siteId]) {
+          siteLabour[siteId] = {
+            siteName,
+            employees: {},
+            totalWorkDays: 0,
+            totalFullDays: 0,
+            totalHalfDays: 0
+          };
+        }
+
+        if (!siteLabour[siteId].employees[employeeId]) {
+          siteLabour[siteId].employees[employeeId] = {
+            name: employeeName,
+            role: employeeRole,
+            fullDays: 0,
+            halfDays: 0,
+            totalDays: 0,
+            totalWages: 0,
+            salaryAmount: att.employee?.salaryAmount || 0,
+            salaryType: att.employee?.salaryType || 'daily'
+          };
+        }
+
+        const employee = siteLabour[siteId].employees[employeeId];
+
+        if (att.status === 'Present') {
+          employee.fullDays++;
+          siteLabour[siteId].totalFullDays++;
+          employee.totalDays += 1; // Full day = 1
+          siteLabour[siteId].totalWorkDays += 1; // Full day = 1
+          // Calculate wage for full day
+          if (employee.salaryType === 'daily') {
+            employee.totalWages += employee.salaryAmount;
+          }
+        } else if (att.status === 'Half-Day') {
+          employee.halfDays++;
+          siteLabour[siteId].totalHalfDays++;
+          employee.totalDays += 0.5; // Half day = 0.5
+          siteLabour[siteId].totalWorkDays += 0.5; // Half day = 0.5
+          // Calculate wage for half day
+          if (employee.salaryType === 'daily') {
+            employee.totalWages += employee.salaryAmount * 0.5;
+          }
+        }
+      });
+
+      setSiteLabourData(siteLabour);
+    }
 
   const showExpenseDetails = (siteName, category, expenseList, totalAmount) => {
     setSelectedExpenseDetails({
@@ -1281,7 +1291,9 @@ function LabourReports() {
           fullDays: 0,
           halfDays: 0,
           totalDays: 0,
-          totalWages: 0
+          totalWages: 0,
+          salaryAmount: att.employee?.salaryAmount || 0,
+          salaryType: att.employee?.salaryType || 'daily'
         };
       }
       
@@ -1291,13 +1303,21 @@ function LabourReports() {
         employee.fullDays++;
         siteLabour[siteId].totalFullDays++;
         employee.totalDays += 1; // Full day = 1
+        siteLabour[siteId].totalWorkDays += 1; // Full day = 1
+        // Calculate wage for full day
+        if (employee.salaryType === 'daily') {
+          employee.totalWages += employee.salaryAmount;
+        }
       } else if (att.status === 'Half-Day') {
         employee.halfDays++;
         siteLabour[siteId].totalHalfDays++;
         employee.totalDays += 0.5; // Half day = 0.5
+        siteLabour[siteId].totalWorkDays += 0.5; // Half day = 0.5
+        // Calculate wage for half day
+        if (employee.salaryType === 'daily') {
+          employee.totalWages += employee.salaryAmount * 0.5;
+        }
       }
-      employee.totalWages += att.wageEarned || 0;
-      siteLabour[siteId].totalWorkDays++;
     });
 
     setSiteLabourData(siteLabour);
