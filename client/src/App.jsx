@@ -909,12 +909,12 @@ function SiteExpenseReport() {
       if (att.status === 'Present') {
         employee.fullDays++;
         siteLabour[siteId].totalFullDays++;
+        employee.totalDays += 1; // Full day = 1
       } else if (att.status === 'Half-Day') {
         employee.halfDays++;
         siteLabour[siteId].totalHalfDays++;
+        employee.totalDays += 0.5; // Half day = 0.5
       }
-      
-      employee.totalDays++;
       employee.totalWages += att.wageEarned || 0;
       siteLabour[siteId].totalWorkDays++;
     });
@@ -1290,12 +1290,12 @@ function LabourReports() {
       if (att.status === 'Present') {
         employee.fullDays++;
         siteLabour[siteId].totalFullDays++;
+        employee.totalDays += 1; // Full day = 1
       } else if (att.status === 'Half-Day') {
         employee.halfDays++;
         siteLabour[siteId].totalHalfDays++;
+        employee.totalDays += 0.5; // Half day = 0.5
       }
-      
-      employee.totalDays++;
       employee.totalWages += att.wageEarned || 0;
       siteLabour[siteId].totalWorkDays++;
     });
@@ -3269,3 +3269,4 @@ function App() {
 }
 
 export default App;
+
