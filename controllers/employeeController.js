@@ -295,10 +295,71 @@ const deleteEmployee = async (req, res) => {
   }
 };
 
+/**
+ * Update employee salary with history tracking
+ * @route PUT /api/employees/:id/salary
+ * @access Private (Admin only)
+ */
+const updateEmployeeSalary = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { newAmount, effectiveDate, reason } = req.body;
+
+    if (!newAmount || newAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid salary amount is required'
+      });
+    }
+
+    // Find employee
+    const employee = await Employee.findById(id);
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: 'Employee not found'
+      });
+    }
+
+    // Get user name from request (set by auth middleware)
+    const changedBy = req.user?.name || 'Admin';
+
+    // Update salary using the model method
+    await employee.updateSalary(
+      newAmount,
+      effectiveDate || new Date(),
+      reason || 'Salary update',
+      changedBy
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Salary updated successfully',
+      data: { employee }
+    });
+  } catch (error) {
+    console.error('Error updating salary:', error);
+    
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid employee ID format'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error updating salary'
+    });
+  }
+};
+
 module.exports = {
   createEmployee,
   getEmployees,
   getEmployeeById,
   updateEmployee,
-  deleteEmployee
+  deleteEmployee,
+  updateEmployeeSalary
 };

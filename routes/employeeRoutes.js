@@ -5,7 +5,8 @@ const {
   getEmployees,
   getEmployeeById,
   updateEmployee,
-  deleteEmployee
+  deleteEmployee,
+  updateEmployeeSalary
 } = require('../controllers/employeeController');
 const validate = require('../middleware/validate');
 const { authenticate, checkRole } = require('../middleware/auth');
@@ -170,6 +171,35 @@ router.delete(
   authenticate,
   checkRole('Admin'),
   deleteEmployee
+);
+
+/**
+ * @route   PUT /api/employees/:id/salary
+ * @desc    Update employee salary with history tracking
+ * @access  Private (Admin)
+ */
+router.put(
+  '/:id/salary',
+  authenticate,
+  checkRole('Admin'),
+  [
+    body('newAmount')
+      .notEmpty()
+      .withMessage('New salary amount is required')
+      .isFloat({ min: 0 })
+      .withMessage('Salary amount must be a positive number'),
+    body('effectiveDate')
+      .optional()
+      .isISO8601()
+      .withMessage('Invalid date format'),
+    body('reason')
+      .optional()
+      .trim()
+      .isLength({ max: 200 })
+      .withMessage('Reason cannot exceed 200 characters')
+  ],
+  validate,
+  updateEmployeeSalary
 );
 
 /**

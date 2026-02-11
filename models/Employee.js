@@ -40,6 +40,32 @@ const employeeSchema = new mongoose.Schema(
       required: [true, 'Salary amount is required'],
       min: [0, 'Salary amount must be a positive number']
     },
+    salaryHistory: [
+      {
+        amount: {
+          type: Number,
+          required: true,
+          min: [0, 'Salary amount must be positive']
+        },
+        effectiveDate: {
+          type: Date,
+          required: true
+        },
+        reason: {
+          type: String,
+          trim: true,
+          maxlength: [200, 'Reason cannot exceed 200 characters']
+        },
+        changedBy: {
+          type: String,
+          trim: true
+        },
+        changedAt: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ],
     currentSite: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Site',
@@ -116,6 +142,26 @@ employeeSchema.methods.addAdvancePayment = async function (amount, description =
   });
 
   this.totalAdvance += amount;
+  await this.save();
+  return this;
+};
+
+// Method to update salary with history tracking
+employeeSchema.methods.updateSalary = async function (newAmount, effectiveDate, reason = '', changedBy = 'Admin') {
+  if (newAmount <= 0) {
+    throw new Error('Salary amount must be positive');
+  }
+
+  // Add current salary to history before updating
+  this.salaryHistory.push({
+    amount: this.salaryAmount,
+    effectiveDate: effectiveDate || new Date(),
+    reason,
+    changedBy,
+    changedAt: new Date()
+  });
+
+  this.salaryAmount = newAmount;
   await this.save();
   return this;
 };

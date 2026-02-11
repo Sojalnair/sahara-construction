@@ -1459,6 +1459,13 @@ function Employees() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showSalaryModal, setShowSalaryModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [salaryFormData, setSalaryFormData] = useState({
+    newAmount: '',
+    effectiveDate: new Date().toISOString().split('T')[0],
+    reason: ''
+  });
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -1792,6 +1799,43 @@ function Employees() {
     }
   };
 
+  const handleEditSalary = (emp) => {
+    setSelectedEmployee(emp);
+    setSalaryFormData({
+      newAmount: emp.salaryAmount,
+      effectiveDate: new Date().toISOString().split('T')[0],
+      reason: ''
+    });
+    setShowSalaryModal(true);
+  };
+
+  const handleSalaryUpdate = async (e) => {
+    e.preventDefault();
+    
+    if (!salaryFormData.newAmount || salaryFormData.newAmount <= 0) {
+      alert('Please enter a valid salary amount');
+      return;
+    }
+
+    try {
+      await api.put(`/employees/${selectedEmployee._id}/salary`, {
+        newAmount: parseFloat(salaryFormData.newAmount),
+        effectiveDate: salaryFormData.effectiveDate,
+        reason: salaryFormData.reason
+      });
+      
+      setShowSalaryModal(false);
+      setSelectedEmployee(null);
+      setSalaryFormData({ newAmount: '', effectiveDate: new Date().toISOString().split('T')[0], reason: '' });
+      await fetchEmployees();
+      alert('Salary updated successfully!');
+    } catch (err) {
+      console.error('Error updating salary:', err);
+      const errorMessage = err.response?.data?.message || 'Error updating salary. Please try again.';
+      alert(errorMessage);
+    }
+  };
+
   return (
     <div className="employees">
       <div className="header">
@@ -1935,9 +1979,18 @@ function Employees() {
                         </span>
                       </td>
                       <td>
-                        <button onClick={() => handleDelete(emp._id)} className="delete-btn">
-                          Delete
-                        </button>
+                        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                          <button 
+                            onClick={() => handleEditSalary(emp)} 
+                            className="edit-salary-btn"
+                            style={{ background: '#3498db', color: 'white', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                          >
+                            Edit Salary
+                          </button>
+                          <button onClick={() => handleDelete(emp._id)} className="delete-btn">
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1953,6 +2006,90 @@ function Employees() {
           </table>
         )}
       </div>
+
+      {/* Salary Edit Modal */}
+      {showSalaryModal && selectedEmployee && (
+        <div className="modal-overlay" onClick={() => setShowSalaryModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Edit Salary - {selectedEmployee.name}</h3>
+              <button className="close-btn" onClick={() => setShowSalaryModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleSalaryUpdate} className="salary-form">
+              <div className="form-group">
+                <label>Current Salary</label>
+                <div className="current-salary">
+                  ₹{selectedEmployee.salaryAmount} ({selectedEmployee.salaryType})
+                </div>
+              </div>
+              
+              <div className="form-group">
+                <label>New Salary Amount *</label>
+                <input
+                  type="number"
+                  value={salaryFormData.newAmount}
+                  onChange={(e) => setSalaryFormData({ ...salaryFormData, newAmount: e.target.value })}
+                  min="1"
+                  step="1"
+                  required
+                  placeholder="Enter new salary amount"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Effective Date *</label>
+                <input
+                  type="date"
+                  value={salaryFormData.effectiveDate}
+                  onChange={(e) => setSalaryFormData({ ...salaryFormData, effectiveDate: e.target.value })}
+                  required
+                />
+                <small style={{ color: '#999', fontSize: '12px' }}>
+                  This date will be used to track when the salary change took effect
+                </small>
+              </div>
+
+              <div className="form-group">
+                <label>Reason for Change</label>
+                <textarea
+                  value={salaryFormData.reason}
+                  onChange={(e) => setSalaryFormData({ ...salaryFormData, reason: e.target.value })}
+                  placeholder="e.g., Annual increment, Performance bonus, Promotion"
+                  rows="3"
+                  maxLength="200"
+                />
+                <small style={{ color: '#999', fontSize: '12px' }}>
+                  Optional: Add a reason for this salary change (max 200 characters)
+                </small>
+              </div>
+
+              {selectedEmployee.salaryHistory && selectedEmployee.salaryHistory.length > 0 && (
+                <div className="salary-history">
+                  <h4>Salary History</h4>
+                  <div className="history-list">
+                    {selectedEmployee.salaryHistory.slice(-3).reverse().map((history, index) => (
+                      <div key={index} className="history-item">
+                        <div className="history-amount">₹{history.amount}</div>
+                        <div className="history-date">{formatDateDDMMYYYY(history.effectiveDate)}</div>
+                        {history.reason && <div className="history-reason">{history.reason}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="modal-actions">
+                <button type="button" onClick={() => setShowSalaryModal(false)} className="cancel-btn">
+                  Cancel
+                </button>
+                <button type="submit" className="submit-btn">
+                  Update Salary
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
