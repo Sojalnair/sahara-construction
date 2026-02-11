@@ -1662,7 +1662,7 @@ function Employees() {
       totalPaid: totalAdvance,
       pending: Math.max(0, pending),
       overpaid: pending < 0 ? Math.abs(pending) : 0,
-      workingDays: presentDays + halfDays,
+      workingDays: presentDays + (halfDays * 0.5),
       fullDays: presentDays,
       halfDays: halfDays
     };

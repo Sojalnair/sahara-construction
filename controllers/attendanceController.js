@@ -14,7 +14,7 @@ exports.markAttendance = async (req, res) => {
     let wageEarned = 0;
     if (emp.salaryType === 'daily') {
       if (status === 'Present') wageEarned = emp.salaryAmount;
-      else if (status === 'Half-day') wageEarned = emp.salaryAmount * 0.5;
+      else if (status === 'Half-Day') wageEarned = emp.salaryAmount * 0.5;
     }
 
     const attendance = await Attendance.create({
