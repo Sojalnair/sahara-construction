@@ -1131,6 +1131,21 @@ function SiteExpenseReport() {
                           </div>
                         </div>
                       ))}
+                      
+                      {/* Total Row */}
+                      <div className="employee-work-item total-row">
+                        <div className="employee-info">
+                          <strong>TOTAL</strong>
+                        </div>
+                        <div className="work-details">
+                          <span className="work-days">
+                            {data.totalFullDays} full + {data.totalHalfDays} half = {data.totalFullDays + (data.totalHalfDays * 0.5)} days
+                          </span>
+                          <span className="work-wages total-wages">
+                            ₹{Object.values(data.employees).reduce((sum, emp) => sum + emp.totalWages, 0).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1433,6 +1448,21 @@ function LabourReports() {
                           </div>
                         </div>
                       ))}
+                      
+                      {/* Total Row */}
+                      <div className="employee-work-item total-row">
+                        <div className="employee-info">
+                          <strong>TOTAL</strong>
+                        </div>
+                        <div className="work-details">
+                          <span className="work-days">
+                            {data.totalFullDays} full + {data.totalHalfDays} half = {data.totalFullDays + (data.totalHalfDays * 0.5)} days
+                          </span>
+                          <span className="work-wages total-wages">
+                            ₹{Object.values(data.employees).reduce((sum, emp) => sum + emp.totalWages, 0).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
