@@ -6186,6 +6186,28 @@ select:focus {
   margin-bottom: 16px;
 }
 
+.income-item-large {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border-radius: 12px;
+  border: 2px solid #27ae60;
+}
+
+.income-label {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.income-amount-large {
+  font-size: 32px;
+  font-weight: 800;
+  color: #27ae60;
+}
+
 .income-item {
   display: flex;
   justify-content: space-between;
@@ -6210,11 +6232,6 @@ select:focus {
 .income-item.profit.negative {
   border-color: #e74c3c;
   background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-}
-
-.income-label {
-  color: #666;
-  font-size: 14px;
 }
 
 .income-amount {
@@ -6248,6 +6265,110 @@ select:focus {
   box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
+/* Profit/Loss Analysis */
+.profit-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.site-profit-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #3498db;
+}
+
+.site-profit-card.profit {
+  border-left-color: #27ae60;
+}
+
+.site-profit-card.loss {
+  border-left-color: #e74c3c;
+}
+
+.site-profit-card h4 {
+  margin: 0 0 16px 0;
+  color: #2c3e50;
+  font-size: 18px;
+}
+
+.profit-breakdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.profit-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.profit-label {
+  color: #666;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.profit-value {
+  color: #2c3e50;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.profit-divider {
+  font-size: 24px;
+  font-weight: 700;
+  color: #95a5a6;
+  margin: 4px 0;
+}
+
+.profit-result {
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.profit-result.positive {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border: 2px solid #27ae60;
+}
+
+.profit-result.negative {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  border: 2px solid #e74c3c;
+}
+
+.profit-result .profit-label {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.profit-amount {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.profit-result.positive .profit-amount {
+  color: #27ae60;
+}
+
+.profit-result.negative .profit-amount {
+  color: #e74c3c;
+}
+
 .income-form {
   padding: 24px;
 }
@@ -6258,7 +6379,16 @@ select:focus {
 
 /* Mobile responsive for income cards */
 @media (max-width: 768px) {
-  .income-summary-cards {
+  .income-summary-cards,
+  .profit-summary-cards {
     grid-template-columns: 1fr;
+  }
+  
+  .income-amount-large {
+    font-size: 28px;
+  }
+  
+  .profit-amount {
+    font-size: 20px;
   }
 }
