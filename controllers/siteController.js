@@ -107,3 +107,59 @@ exports.assignSupervisor = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// Add income payment to site
+exports.addIncomePayment = async (req, res) => {
+  try {
+    const { amount, date, description } = req.body;
+    const site = await Site.findById(req.params.id);
+    
+    if (!site) {
+      return res.status(404).json({ success: false, message: 'Site not found' });
+    }
+
+    const receivedBy = req.user?.name || 'Admin';
+
+    site.incomePayments.push({
+      amount: parseFloat(amount),
+      date: date || new Date(),
+      description: description || 'Payment received',
+      receivedBy
+    });
+
+    site.totalIncome += parseFloat(amount);
+    await site.save();
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Income payment added successfully',
+      data: site 
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// Get site financial summary
+exports.getSiteFinancials = async (req, res) => {
+  try {
+    const site = await Site.findById(req.params.id);
+    
+    if (!site) {
+      return res.status(404).json({ success: false, message: 'Site not found' });
+    }
+
+    const financials = {
+      siteName: site.name,
+      totalIncome: site.totalIncome || 0,
+      totalExpenses: site.totalExpenses || 0,
+      profit: (site.totalIncome || 0) - (site.totalExpenses || 0),
+      incomePayments: site.incomePayments || [],
+      status: site.status
+    };
+
+    res.status(200).json({ success: true, data: financials });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

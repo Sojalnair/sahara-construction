@@ -5,7 +5,9 @@ const {
   getSiteById,
   updateSite,
   deleteSite,
-  assignSupervisor
+  assignSupervisor,
+  addIncomePayment,
+  getSiteFinancials
 } = require('../controllers/siteController');
 const { authenticate, checkRole } = require('../middleware/auth');
 
@@ -38,5 +40,7 @@ router.get('/:id', authenticate, getSiteById);
 router.put('/:id', authenticate, checkRole('Admin'), updateSite);
 router.delete('/:id', authenticate, checkRole('Admin'), deleteSite);
 router.post('/:id/assign-supervisor', authenticate, checkRole('Admin'), assignSupervisor);
+router.post('/:id/income', authenticate, checkRole('Admin'), addIncomePayment);
+router.get('/:id/financials', authenticate, getSiteFinancials);
 
 module.exports = router;

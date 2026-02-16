@@ -53,6 +53,33 @@ const siteSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
+    incomePayments: [
+      {
+        amount: {
+          type: Number,
+          required: true,
+          min: [0, 'Income amount must be positive']
+        },
+        date: {
+          type: Date,
+          required: true,
+          default: Date.now
+        },
+        description: {
+          type: String,
+          trim: true,
+          maxlength: [200, 'Description cannot exceed 200 characters']
+        },
+        receivedBy: {
+          type: String,
+          trim: true
+        }
+      }
+    ],
+    totalIncome: {
+      type: Number,
+      default: 0
+    },
     assignedEmployees: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Employee'

@@ -728,11 +728,19 @@ function SiteExpenseReport() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [siteExpenseData, setSiteExpenseData] = useState({});
   const [siteLabourData, setSiteLabourData] = useState({});
+  const [siteIncomeData, setSiteIncomeData] = useState({});
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [selectedExpenseDetails, setSelectedExpenseDetails] = useState(null);
+  const [showIncomeModal, setShowIncomeModal] = useState(false);
+  const [selectedSiteForIncome, setSelectedSiteForIncome] = useState(null);
+  const [incomeFormData, setIncomeFormData] = useState({
+    amount: '',
+    date: new Date().toISOString().split('T')[0],
+    description: ''
+  });
 
   useEffect(() => {
     fetchSites();
@@ -759,7 +767,8 @@ function SiteExpenseReport() {
   useEffect(() => {
     calculateSiteExpenses();
     calculateSiteLabourDays();
-  }, [expenses, attendance, employees, selectedSite, selectedMonth]);
+    calculateSiteIncome();
+  }, [expenses, attendance, employees, selectedSite, selectedMonth, sites, siteExpenseData, siteLabourData]);
 
   const fetchSites = async () => {
     try {
@@ -857,6 +866,58 @@ function SiteExpenseReport() {
     });
 
     setSiteExpenseData(siteData);
+  };
+
+  const calculateSiteIncome = () => {
+    const incomeData = {};
+    
+    sites.forEach(site => {
+      if (selectedSite && site._id !== selectedSite) return;
+      
+      const siteIncome = (site.incomePayments || []).reduce((sum, payment) => sum + payment.amount, 0);
+      const siteExpenses = siteExpenseData[site._id]?.total || 0;
+      const siteLabourCost = Object.values(siteLabourData[site._id]?.employees || {}).reduce((sum, emp) => sum + emp.totalWages, 0);
+      
+      incomeData[site._id] = {
+        siteName: site.name,
+        totalIncome: siteIncome,
+        totalExpenses: siteExpenses + siteLabourCost,
+        profit: siteIncome - (siteExpenses + siteLabourCost),
+        incomePayments: site.incomePayments || []
+      };
+    });
+    
+    setSiteIncomeData(incomeData);
+  };
+
+  const handleAddIncome = (site) => {
+    setSelectedSiteForIncome(site);
+    setIncomeFormData({
+      amount: '',
+      date: new Date().toISOString().split('T')[0],
+      description: ''
+    });
+    setShowIncomeModal(true);
+  };
+
+  const handleIncomeSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!incomeFormData.amount || incomeFormData.amount <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+
+    try {
+      await api.post(`/sites/${selectedSiteForIncome._id}/income`, incomeFormData);
+      setShowIncomeModal(false);
+      await fetchSites();
+      calculateSiteIncome();
+      alert('Income added successfully!');
+    } catch (err) {
+      console.error('Error adding income:', err);
+      alert(err.response?.data?.message || 'Error adding income');
+    }
   };
 
   const calculateSiteLabourDays = () => {
@@ -1042,6 +1103,38 @@ function SiteExpenseReport() {
         </div>
       ) : (
         <>
+          {/* Income & Profit Summary */}
+          <div className="report-section">
+            <h3>💵 Income & Profit Analysis</h3>
+            <div className="income-summary-cards">
+              {Object.entries(siteIncomeData).map(([siteId, data]) => (
+                <div key={siteId} className="site-income-card">
+                  <h4>{data.siteName}</h4>
+                  <div className="income-breakdown">
+                    <div className="income-item">
+                      <span className="income-label">Total Income</span>
+                      <span className="income-amount positive">₹{data.totalIncome.toLocaleString()}</span>
+                    </div>
+                    <div className="income-item">
+                      <span className="income-label">Total Expenses</span>
+                      <span className="income-amount negative">₹{data.totalExpenses.toLocaleString()}</span>
+                    </div>
+                    <div className={`income-item profit ${data.profit >= 0 ? 'positive' : 'negative'}`}>
+                      <span className="income-label">{data.profit >= 0 ? 'Profit' : 'Loss'}</span>
+                      <span className="income-amount">₹{Math.abs(data.profit).toLocaleString()}</span>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => handleAddIncome(sites.find(s => s._id === siteId))}
+                    className="add-income-btn"
+                  >
+                    + Add Income
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Expense Summary Cards */}
           <div className="report-section">
             <h3>💰 Material & Transport Expenses</h3>
@@ -1196,6 +1289,62 @@ function SiteExpenseReport() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Income Modal */}
+      {showIncomeModal && selectedSiteForIncome && (
+        <div className="modal-overlay" onClick={() => setShowIncomeModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Add Income - {selectedSiteForIncome.name}</h3>
+              <button className="close-btn" onClick={() => setShowIncomeModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleIncomeSubmit} className="income-form">
+              <div className="form-group">
+                <label>Amount Received *</label>
+                <input
+                  type="number"
+                  value={incomeFormData.amount}
+                  onChange={(e) => setIncomeFormData({ ...incomeFormData, amount: e.target.value })}
+                  min="1"
+                  step="1"
+                  required
+                  placeholder="Enter amount received"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Date *</label>
+                <input
+                  type="date"
+                  value={incomeFormData.date}
+                  onChange={(e) => setIncomeFormData({ ...incomeFormData, date: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Description</label>
+                <textarea
+                  value={incomeFormData.description}
+                  onChange={(e) => setIncomeFormData({ ...incomeFormData, description: e.target.value })}
+                  placeholder="e.g., Payment from client, Advance payment"
+                  rows="3"
+                  maxLength="200"
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" onClick={() => setShowIncomeModal(false)} className="cancel-btn">
+                  Cancel
+                </button>
+                <button type="submit" className="submit-btn">
+                  Add Income
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
