@@ -767,13 +767,8 @@ function SiteExpenseReport() {
   useEffect(() => {
     calculateSiteExpenses();
     calculateSiteLabourDays();
-  }, [expenses, attendance, employees, selectedSite, selectedMonth]);
-
-  useEffect(() => {
-    if (Object.keys(siteExpenseData).length > 0 || Object.keys(siteLabourData).length > 0) {
-      calculateSiteIncome();
-    }
-  }, [sites, siteExpenseData, siteLabourData, selectedSite]);
+    calculateSiteIncome();
+  }, [expenses, attendance, employees, selectedSite, selectedMonth, sites, siteExpenseData, siteLabourData]);
 
   const fetchSites = async () => {
     try {
@@ -1108,17 +1103,25 @@ function SiteExpenseReport() {
         </div>
       ) : (
         <>
-          {/* Income Summary */}
+          {/* Income & Profit Summary */}
           <div className="report-section">
-            <h3>💵 Income Received</h3>
+            <h3>💵 Income & Profit Analysis</h3>
             <div className="income-summary-cards">
               {Object.entries(siteIncomeData).map(([siteId, data]) => (
                 <div key={siteId} className="site-income-card">
                   <h4>{data.siteName}</h4>
                   <div className="income-breakdown">
-                    <div className="income-item-large">
-                      <span className="income-label">Total Income Received</span>
-                      <span className="income-amount-large positive">₹{data.totalIncome.toLocaleString()}</span>
+                    <div className="income-item">
+                      <span className="income-label">Total Income</span>
+                      <span className="income-amount positive">₹{data.totalIncome.toLocaleString()}</span>
+                    </div>
+                    <div className="income-item">
+                      <span className="income-label">Total Expenses</span>
+                      <span className="income-amount negative">₹{data.totalExpenses.toLocaleString()}</span>
+                    </div>
+                    <div className={`income-item profit ${data.profit >= 0 ? 'positive' : 'negative'}`}>
+                      <span className="income-label">{data.profit >= 0 ? 'Profit' : 'Loss'}</span>
+                      <span className="income-amount">₹{Math.abs(data.profit).toLocaleString()}</span>
                     </div>
                   </div>
                   <button 
@@ -1127,34 +1130,6 @@ function SiteExpenseReport() {
                   >
                     + Add Income
                   </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Profit/Loss Analysis */}
-          <div className="report-section">
-            <h3>📊 Profit & Loss Analysis</h3>
-            <div className="profit-summary-cards">
-              {Object.entries(siteIncomeData).map(([siteId, data]) => (
-                <div key={siteId} className={`site-profit-card ${data.profit >= 0 ? 'profit' : 'loss'}`}>
-                  <h4>{data.siteName}</h4>
-                  <div className="profit-breakdown">
-                    <div className="profit-item">
-                      <span className="profit-label">Income</span>
-                      <span className="profit-value">₹{data.totalIncome.toLocaleString()}</span>
-                    </div>
-                    <div className="profit-divider">−</div>
-                    <div className="profit-item">
-                      <span className="profit-label">Expenses</span>
-                      <span className="profit-value">₹{data.totalExpenses.toLocaleString()}</span>
-                    </div>
-                    <div className="profit-divider">=</div>
-                    <div className={`profit-result ${data.profit >= 0 ? 'positive' : 'negative'}`}>
-                      <span className="profit-label">{data.profit >= 0 ? 'Profit' : 'Loss'}</span>
-                      <span className="profit-amount">₹{Math.abs(data.profit).toLocaleString()}</span>
-                    </div>
-                  </div>
                 </div>
               ))}
             </div>
